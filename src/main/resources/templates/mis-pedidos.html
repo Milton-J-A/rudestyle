@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/head :: head}"></head>
+<body>
+
+  <!-- Navbar -->
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+  <main class="container my-5" style="min-height: 70vh;">
+    <div class="mb-4">
+      <div class="rs-section-title">Historial de Compras</div>
+      <h2 class="rs-section-h2">Mis Pedidos</h2>
+    </div>
+
+    <!-- Si no tiene pedidos registrados -->
+    <div th:if="${#lists.isEmpty(pedidos)}" class="bg-dark p-5 rounded border border-secondary border-opacity-25 text-center">
+      <i class="bi bi-bag-x text-secondary" style="font-size: 3rem;"></i>
+      <h4 class="text-light mt-3">Aún no has realizado ninguna compra</h4>
+      <p class="text-secondary">Explora nuestra colección urbana y realiza tu primer pedido.</p>
+      <a th:href="@{/catalogo}" class="rs-btn-primary d-inline-block text-decoration-none mt-2">Ir al Catálogo</a>
+    </div>
+
+    <!-- Tabla con las compras del usuario -->
+    <div th:unless="${#lists.isEmpty(pedidos)}" class="table-responsive bg-dark p-3 rounded border border-secondary border-opacity-25">
+      <table class="table table-dark table-hover align-middle mb-0">
+        <thead>
+          <tr class="text-secondary border-secondary">
+            <th>Código de Orden</th>
+            <th>Fecha</th>
+            <th>Método de Pago</th>
+            <th>Total</th>
+            <th class="text-center">Estado del Pedido</th>
+            <th class="text-end">Detalle</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="p : ${pedidos}" class="border-secondary">
+            <td>
+              <span class="text-warning fw-bold" th:text="${p.codigoOrden}"></span>
+            </td>
+            <td class="text-secondary small" th:text="${#temporals.format(p.fechaPedido, 'dd/MM/yyyy HH:mm')}"></td>
+            <td class="text-light small" th:text="${p.metodoPago}"></td>
+            <td class="text-warning fw-bold" th:text="'S/. ' + ${#numbers.formatDecimal(p.total, 1, 2)}"></td>
+            <td class="text-center">
+              <span th:class="${p.estadoPago == 'ENTREGADO' ? 'badge bg-success' : 
+                               (p.estadoPago == 'CANCELADO' ? 'badge bg-danger' : 'badge bg-warning text-dark')}"
+                    th:text="${p.estadoPago}">
+              </span>
+            </td>
+            <td class="text-end">
+              <a th:href="@{'/mis-pedidos/detalle/' + ${p.idPedido}}" class="rs-btn-outline py-1 px-3 small text-decoration-none">
+                <i class="bi bi-eye"></i> Ver Prendas
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

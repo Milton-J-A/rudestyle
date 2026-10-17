@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/head :: head}"></head>
+<body class="bg-black text-light d-flex flex-column min-vh-100">
+
+  <!-- Navbar -->
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+  <!-- Contenedor Principal Centrado -->
+  <main class="container my-auto py-5 d-flex justify-content-center align-items-center flex-grow-1">
+    <div class="bg-dark p-4 p-md-5 rounded border border-secondary border-opacity-25 shadow-lg w-100" style="max-width: 480px;">
+      
+      <div class="text-center mb-4">
+        <div class="text-warning text-uppercase small fw-bold" style="letter-spacing: 2px;">Únete a Rudestyle</div>
+        <h2 class="text-light fw-black mt-1 mb-0">Crear Cuenta</h2>
+      </div>
+
+      <!-- Alerta de Error si el correo ya existe -->
+      <div th:if="${error}" class="alert alert-danger py-2 small mb-3 text-center" th:text="${error}"></div>
+
+      <form th:action="@{/registro}" method="post">
+        
+        <div class="mb-3">
+          <label class="form-label text-secondary small">Nombre Completo</label>
+          <input type="text" name="nombre" class="form-control bg-black text-light border-secondary" 
+                 placeholder="Ej. Juan Pérez" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label text-secondary small">Correo Electrónico</label>
+          <input type="email" name="correo" class="form-control bg-black text-light border-secondary" 
+                 placeholder="ejemplo@correo.com" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label text-secondary small">Teléfono</label>
+          <input type="tel" name="telefono" class="form-control bg-black text-light border-secondary" 
+                 placeholder="Ej. 999888777" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label text-secondary small">Dirección de Entrega</label>
+          <input type="text" name="direccion" class="form-control bg-black text-light border-secondary" 
+                 placeholder="Av. Principal 123, Dpto 401" required>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label text-secondary small">Contraseña</label>
+          <input type="password" name="password" class="form-control bg-black text-light border-secondary" 
+                 placeholder="••••••••" required>
+        </div>
+
+        <button type="submit" class="rs-btn-primary w-100 py-2 border-0 text-uppercase fw-bold mb-3">
+          Crear mi Cuenta
+        </button>
+
+        <div class="text-center text-secondary small">
+          ¿Ya tienes una cuenta? 
+          <a th:href="@{/login}" class="text-warning text-decoration-none fw-bold ms-1">Inicia sesión</a>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

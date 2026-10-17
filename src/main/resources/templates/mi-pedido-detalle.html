@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/head :: head}"></head>
+<body>
+
+  <!-- Navbar -->
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+  <main class="container my-5" style="min-height: 70vh;">
+    <div class="mb-4">
+      <a th:href="@{/mis-pedidos}" class="text-warning text-decoration-none small mb-2 d-inline-block">
+        <i class="bi bi-arrow-left"></i> Volver a Mis Pedidos
+      </a>
+      <div class="rs-section-title">Comprobante de Pedido</div>
+      <h2 class="rs-section-h2" th:text="'Orden: ' + ${pedido.codigoOrden}"></h2>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <div class="bg-dark p-4 rounded border border-secondary border-opacity-25">
+          <h5 class="text-light mb-3">Datos de Entrega</h5>
+          <p class="mb-1 text-secondary small">Receptor:</p>
+          <p class="text-light fw-bold" th:text="${pedido.nombresCliente}"></p>
+
+          <p class="mb-1 text-secondary small">Destino:</p>
+          <p class="text-light" th:text="${pedido.direccionEnvio + ' - ' + pedido.departamento}"></p>
+
+          <p class="mb-1 text-secondary small">Estado Actual:</p>
+          <span class="badge bg-warning text-dark fw-bold" th:text="${pedido.estadoPago}"></span>
+        </div>
+      </div>
+
+      <div class="col-lg-8">
+        <div class="bg-dark p-4 rounded border border-secondary border-opacity-25">
+          <h5 class="text-light mb-3">Prendas Adquiridas</h5>
+          <div class="table-responsive">
+            <table class="table table-dark align-middle mb-0">
+              <thead>
+                <tr class="text-secondary border-secondary">
+                  <th>Prenda</th>
+                  <th class="text-center">Cant.</th>
+                  <th>Precio Unit.</th>
+                  <th class="text-end">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:each="d : ${detalles}" class="border-secondary">
+                  <td>
+                    <div class="d-flex align-items-center gap-3">
+                      <img th:src="@{'/img/' + ${d.producto.imagen}}" 
+                           style="width: 45px; height: 55px; object-fit: cover; border-radius: 4px;"
+                           onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=600';">
+                      <span class="text-light fw-bold" th:text="${d.producto.nomProducto}"></span>
+                    </div>
+                  </td>
+                  <td class="text-center" th:text="${d.cantidad}"></td>
+                  <td th:text="'S/. ' + ${#numbers.formatDecimal(d.precioUnitario, 1, 2)}"></td>
+                  <td class="text-end text-warning fw-bold" th:text="'S/. ' + ${#numbers.formatDecimal(d.subtotal, 1, 2)}"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="d-flex justify-content-between mt-4 pt-3 border-top border-secondary">
+            <span class="text-light fs-5 fw-bold">Total Pagado:</span>
+            <span class="text-warning fs-5 fw-bold" th:text="'S/. ' + ${#numbers.formatDecimal(pedido.total, 1, 2)}"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

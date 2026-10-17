@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/head :: head}"></head>
+<body class="bg-black text-white">
+
+  <!-- Navbar -->
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+  <main class="container my-5" style="min-height: 60vh;">
+    <div class="mb-4">
+      <div class="rs-section-title text-warning text-uppercase" style="letter-spacing: 1px; font-size: 0.85rem;">Tu Selección</div>
+      <h2 class="rs-section-h2 fw-bold text-white">Bolsa de Compras</h2>
+      <div th:if="${errorStock}" class="alert alert-danger py-2 small" th:text="${errorStock}"></div>
+    </div>
+
+    <!-- Carrito vacío -->
+    <div th:if="${#lists.isEmpty(items)}" class="text-center py-5">
+      <i class="bi bi-cart-x fs-1 text-muted mb-3 d-block"></i>
+      <h4 class="text-light">Tu carrito está vacío</h4>
+      <p class="text-secondary mb-4">Aún no has agregado prendas a tu bolsa.</p>
+      <a th:href="@{/catalogo}" class="rs-btn-primary">Explorar Catálogo</a>
+    </div>
+
+    <!-- Tabla con productos -->
+    <div th:if="${!#lists.isEmpty(items)}" class="row g-4">
+      <div class="col-lg-8">
+        <div class="table-responsive bg-dark p-3 rounded-3 border border-secondary border-opacity-25 shadow-sm">
+          <table class="table table-dark align-middle mb-0">
+            <thead>
+              <tr class="text-secondary border-secondary">
+                <th scope="col">Prenda</th>
+                <th scope="col">Precio</th>
+                <th scope="col" class="text-center">Cantidad</th>
+                <th scope="col">Subtotal</th>
+                <th scope="col" class="text-end">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="item : ${items}" class="border-secondary">
+                <td>
+                  <div class="d-flex align-items-center gap-3">
+                    <img th:src="@{'/img/' + ${item.producto.imagen}}" 
+                         style="width: 55px; height: 65px; object-fit: cover; border-radius: 4px;"
+                         onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=600';">
+                    <div>
+                      <span class="d-block fw-bold text-light" th:text="${item.producto.nomProducto}"></span>
+                      <div class="d-flex align-items-center gap-2 mt-1">
+                        <small class="text-secondary" th:text="${item.producto.categoria != null ? item.producto.categoria.nomCategoria : 'Urbano'}"></small>
+                        <span th:if="${item.talla != null}" 
+                              class="badge bg-secondary border border-secondary text-warning" 
+                              style="font-size: 0.72rem;" 
+                              th:text="'Talla: ' + ${item.talla}">Talla: M</span>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td class="text-light" th:text="'S/. ' + ${#numbers.formatDecimal(item.producto.precio, 1, 2)}"></td>
+                <td class="text-center">
+                  <div class="d-inline-flex align-items-center gap-2 bg-black px-2 py-1 rounded border border-secondary border-opacity-50">
+                    <a th:href="@{'/carrito/disminuir/' + ${item.producto.idProducto}}" class="text-warning text-decoration-none px-1 fw-bold fs-6">−</a>
+                    <span class="text-light fw-bold px-2" th:text="${item.cantidad}">1</span>
+                    <a th:href="@{'/carrito/agregar/' + ${item.producto.idProducto}}" class="text-warning text-decoration-none px-1 fw-bold fs-6">+</a>
+                  </div>
+                </td>
+                <td class="text-warning fw-bold" th:text="'S/. ' + ${#numbers.formatDecimal(item.subtotal, 1, 2)}"></td>
+                <td class="text-end">
+                  <a th:href="@{'/carrito/eliminar/' + ${item.producto.idProducto}}" class="btn btn-outline-danger btn-sm">
+                    <i class="bi bi-trash"></i>
+                  </a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="mt-3 d-flex justify-content-between">
+          <a th:href="@{/catalogo}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Seguir Comprando</a>
+          <a th:href="@{/carrito/vaciar}" class="btn btn-sm btn-outline-danger">Vaciar Carrito</a>
+        </div>
+      </div>
+
+      <!-- Resumen del Pedido con Regla Transparente de Delivery -->
+      <div class="col-lg-4">
+        <div class="bg-dark p-4 rounded-3 border border-secondary border-opacity-25 shadow-sm">
+          <h4 class="text-light mb-4 fw-bold">Resumen de Orden</h4>
+          
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-light opacity-75">Prendas</span>
+            <span class="text-light fw-bold" th:text="${totalPrendas}"></span>
+          </div>
+          
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-light opacity-75">Subtotal</span>
+            <span class="text-light fw-bold" th:text="'S/. ' + ${#numbers.formatDecimal(total, 1, 2)}"></span>
+          </div>
+          
+          <!-- Costo de Envío Dinámico según regla de S/ 150 -->
+          <div class="d-flex justify-content-between mb-3 align-items-center">
+            <span class="text-light opacity-75">Costo de Envío</span>
+            <div>
+              <span th:if="${total >= 150}" class="badge bg-success-subtle text-success border border-success fw-bold px-2 py-1">Gratis (≥ S/ 150)</span>
+              <span th:if="${total < 150}" class="text-warning fw-bold">S/. 15.00</span>
+            </div>
+          </div>
+
+          <!-- Mensaje de motivación al cliente -->
+          <div th:if="${total < 150}" class="p-3 mb-3 rounded border border-warning" style="background-color: #1c1708; color: #f8f9fa;">
+          <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-truck text-warning fs-5"></i>
+          <div style="font-size: 0.88rem; line-height: 1.3;">
+     		 Agrega <span class="badge bg-warning text-dark fw-bold px-2 py-1" th:text="'S/. ' + ${#numbers.formatDecimal(150 - total, 1, 2)}"></span> más a tu bolsa para calificar a <strong class="text-warning text-uppercase">Envío Gratis</strong>.
+    		</div>
+  			</div>
+			</div>
+
+          <hr class="border-secondary">
+          
+          <!-- Total Real Proyectado -->
+          <div class="d-flex justify-content-between mb-4">
+            <span class="text-white fw-bold fs-5">Total Estimado</span>
+            <span class="text-warning fw-bold fs-4" 
+                  th:text="'S/. ' + ${#numbers.formatDecimal(total >= 150 ? total : total + 15, 1, 2)}"></span>
+          </div>
+
+          <a th:href="@{/checkout}" class="btn btn-warning w-100 fw-bold py-2 shadow-sm fs-5 text-dark text-uppercase">
+            Procesar Compra
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <div th:replace="~{fragments/footer :: footer}"></div>
+
+  <!-- Botón flotante y modal de Ruleta -->
+  <div id="btnRuletaFlotante" style="position: fixed; bottom: 30px; right: 30px; z-index: 9999; cursor: pointer;" onclick="abrirModalRuleta()">
+      <div style="background: linear-gradient(135deg, #1c1c1c, #000); border: 2px solid #d4af37; border-radius: 50px; padding: 12px 20px; box-shadow: 0 4px 20px rgba(212, 175, 55, 0.45); display: flex; align-items: center; gap: 10px;">
+          <i class="bi bi-gift-fill" style="color: #d4af37; font-size: 1.6rem; animation: pulseRuleta 1.5s infinite;"></i>
+          <div style="text-align: left; line-height: 1.2;">
+              <span style="display: block; color: #fff; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;">¿Tienes Suerte?</span>
+              <strong style="color: #d4af37; font-size: 0.95rem;">¡GIRA Y GANA!</strong>
+          </div>
+      </div>
+  </div>
+
+  <div class="modal fade" id="modalRuleta" tabindex="-1" aria-hidden="true" style="z-index: 100000;">
+      <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content" style="background-color: #161616; color: #ffffff; border: 1px solid #d4af37; border-radius: 16px;">
+              <div class="modal-header border-0 pb-0 justify-content-end">
+                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body text-center pt-0 px-4 pb-4">
+                  <h3 class="fw-bold" style="color: #d4af37; letter-spacing: 1px;">RULETA RUDESTYLE</h3>
+                  <p class="text-secondary small mb-3">Gira la ruleta y obtén un código de descuento directo para tu compra.</p>
+                  <div style="position: relative; width: 300px; height: 300px; margin: 0 auto;">
+                      <div style="position: absolute; top: -14px; left: 50%; transform: translateX(-50%); z-index: 100; font-size: 2rem; color: #d4af37; filter: drop-shadow(0 2px 4px #000);">▼</div>
+                      <canvas id="canvasRuleta" width="300" height="300"></canvas>
+                  </div>
+                  <div id="ruletaResultado" class="fw-bold fs-5 my-3" style="min-height: 32px; color: #d4af37;"></div>
+                  <button id="btnGirar" type="button" class="btn w-100 py-2 fw-bold" style="background-color: #d4af37; color: #000; border-radius: 8px;" onclick="iniciarGiroRuleta()">
+                      ¡GIRAR AHORA!
+                  </button>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <style>
+      @keyframes pulseRuleta {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.18); }
+          100% { transform: scale(1); }
+      }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+      const premiosRuleta = [
+          { label: "10% OFF", codigo: "RUDE10", bg: "#1f1f1f", text: "#d4af37" },
+          { label: "Sigue Intentando", codigo: null, bg: "#2a2a2a", text: "#888888" },
+          { label: "15% OFF", codigo: "RUDE15", bg: "#d4af37", text: "#000000" },
+          { label: "S/ 15 Delivery", codigo: "ENVIOGRATIS", bg: "#1f1f1f", text: "#d4af37" },
+          { label: "S/ 20 OFF", codigo: "RUDE20", bg: "#d4af37", text: "#000000" },
+          { label: "Sin suerte", codigo: null, bg: "#2a2a2a", text: "#888888" }
+      ];
+
+      let startAngle = 0;
+      const arc = Math.PI / (premiosRuleta.length / 2);
+      let spinTimeout = null;
+      let spinArcStart = 10;
+      let spinTime = 0;
+      let spinTimeTotal = 0;
+
+      function renderRuleta() {
+          const canvas = document.getElementById("canvasRuleta");
+          if (!canvas || !canvas.getContext) return;
+          const ctx = canvas.getContext("2d");
+          ctx.clearRect(0, 0, 300, 300);
+
+          for (let i = 0; i < premiosRuleta.length; i++) {
+              const angle = startAngle + i * arc;
+              ctx.fillStyle = premiosRuleta[i].bg;
+              ctx.beginPath();
+              ctx.arc(150, 150, 140, angle, angle + arc, false);
+              ctx.arc(150, 150, 25, angle + arc, angle, true);
+              ctx.stroke();
+              ctx.fill();
+              ctx.save();
+
+              ctx.fillStyle = premiosRuleta[i].text;
+              ctx.translate(150 + Math.cos(angle + arc / 2) * 85, 150 + Math.sin(angle + arc / 2) * 85);
+              ctx.rotate(angle + arc / 2 + Math.PI / 2);
+              ctx.font = 'bold 12px sans-serif';
+              ctx.fillText(premiosRuleta[i].label, -ctx.measureText(premiosRuleta[i].label).width / 2, 0);
+              ctx.restore();
+          }
+      }
+
+      function girarAnimacion() {
+          spinTime += 30;
+          if (spinTime >= spinTimeTotal) {
+              finalizarGiro();
+              return;
+          }
+          const spinAngle = spinArcStart - easeOutCustom(spinTime, 0, spinArcStart, spinTimeTotal);
+          startAngle += (spinAngle * Math.PI / 180);
+          renderRuleta();
+          spinTimeout = setTimeout(girarAnimacion, 30);
+      }
+
+      function finalizarGiro() {
+          clearTimeout(spinTimeout);
+          const degrees = startAngle * 180 / Math.PI + 90;
+          const arcd = arc * 180 / Math.PI;
+          const index = Math.floor((360 - degrees % 360) / arcd);
+          const premio = premiosRuleta[index];
+
+          const resDiv = document.getElementById("ruletaResultado");
+          const btnGirar = document.getElementById("btnGirar");
+
+          if (premio && premio.codigo) {
+              resDiv.innerHTML = `<span class="text-success"><i class="bi bi-check-circle"></i> ¡Ganaste ${premio.label}!</span><br><small class="text-white">Código: <b>${premio.codigo}</b></small>`;
+              fetch('/api/cupon/aplicar?codigo=' + encodeURIComponent(premio.codigo), { method: 'POST' })
+                  .then(() => setTimeout(() => window.location.reload(), 1200));
+          } else {
+              resDiv.innerHTML = '<span class="text-secondary">¡Casi! Mejor suerte en la próxima compra.</span>';
+          }
+
+          btnGirar.disabled = false;
+          btnGirar.innerText = "¡GIRAR DE NUEVO!";
+      }
+
+      function easeOutCustom(t, b, c, d) {
+          const ts = (t /= d) * t;
+          const tc = ts * t;
+          return b + c * (tc + -3 * ts + 3 * t);
+      }
+
+      function abrirModalRuleta() {
+          const modalEl = document.getElementById('modalRuleta');
+          const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+          modal.show();
+          setTimeout(renderRuleta, 250);
+          const btnGirar = document.getElementById("btnGirar");
+          btnGirar.disabled = false;
+          btnGirar.innerText = "¡GIRAR AHORA!";
+      }
+
+      function iniciarGiroRuleta() {
+          const btnGirar = document.getElementById("btnGirar");
+          btnGirar.disabled = true;
+          btnGirar.innerText = "Girando...";
+          spinArcStart = Math.random() * 10 + 10;
+          spinTime = 0;
+          spinTimeTotal = Math.random() * 2500 + 3500;
+          girarAnimacion();
+      }
+  </script>
+</body>
+</html>

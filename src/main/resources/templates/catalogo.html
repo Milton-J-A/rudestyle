@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/head :: head}">
+  <style>
+    .filter-card {
+      background: #141414;
+      border: 1px solid #2d2d2d;
+      border-radius: 14px;
+      padding: 20px;
+    }
+    .filter-input {
+      background-color: #1a1a1a !important;
+      border: 1px solid #444 !important;
+      color: #ffffff !important;
+      font-size: 0.9rem;
+    }
+    .filter-input:focus {
+      border-color: #d4af37 !important;
+      box-shadow: 0 0 6px rgba(212, 175, 55, 0.4) !important;
+    }
+    .price-chip {
+      background: #1a1a1a;
+      border: 1px solid #3d3d3d;
+      color: #b0b0b0;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 0.8rem;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .price-chip:hover {
+      border-color: #d4af37;
+      color: #d4af37;
+    }
+  </style>
+</head>
+<body class="bg-black text-white">
+
+  <!-- Navbar -->
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+  <main class="container my-5">
+    <div class="mb-4">
+      <div class="rs-section-title">Colección RudeStyle</div>
+      <h2 class="rs-section-h2">Catálogo de Productos</h2>
+    </div>
+
+    <!-- 1. Píldoras de Categorías -->
+    <div class="d-flex flex-wrap gap-2 mb-4">
+      <a th:href="@{/catalogo(q=${busquedaActual}, precioMin=${precioMinActual}, precioMax=${precioMaxActual}, orden=${ordenActual})}" 
+         class="cat-pill" 
+         th:classappend="${categoriaSeleccionada == null} ? 'active' : ''">
+         Todas las prendas
+      </a>
+      <a th:each="cat : ${categorias}" 
+         th:href="@{/catalogo(categoria=${cat.idCategoria}, q=${busquedaActual}, precioMin=${precioMinActual}, precioMax=${precioMaxActual}, orden=${ordenActual})}" 
+         class="cat-pill" 
+         th:classappend="${categoriaSeleccionada == cat.idCategoria} ? 'active' : ''" 
+         th:text="${cat.nomCategoria}">
+         Categoría
+      </a>
+    </div>
+
+    <!-- 2. Barra de Filtro de Precios, Búsqueda y Ordenamiento -->
+    <div class="filter-card shadow-sm mb-4">
+      <form th:action="@{/catalogo}" method="GET" class="row g-3 align-items-end">
+        <!-- Mantiene la categoría seleccionada si existe -->
+        <input type="hidden" name="categoria" th:if="${categoriaSeleccionada != null}" th:value="${categoriaSeleccionada}">
+
+        <!-- Búsqueda de prenda -->
+        <div class="col-md-4 col-lg-3">
+          <label class="form-label text-white small fw-bold mb-1">
+            <i class="bi bi-search text-warning me-1"></i> Buscar prenda:
+          </label>
+          <input type="text" 
+                 name="q" 
+                 class="form-control filter-input" 
+                 placeholder="Ej. Hoodie, Polo, Cargo..." 
+                 th:value="${busquedaActual}">
+        </div>
+
+        <!-- Rango de precios -->
+        <div class="col-md-4 col-lg-3">
+          <label class="form-label text-white small fw-bold mb-1">
+            <i class="bi bi-tag-fill text-warning me-1"></i> Rango de Precio (S/.):
+          </label>
+          <div class="input-group">
+            <input type="number" 
+                   step="5" 
+                   min="0" 
+                   name="precioMin" 
+                   class="form-control filter-input" 
+                   placeholder="Mín" 
+                   th:value="${precioMinActual}">
+            <span class="input-group-text bg-dark border-secondary text-white-50">-</span>
+            <input type="number" 
+                   step="5" 
+                   min="0" 
+                   name="precioMax" 
+                   class="form-control filter-input" 
+                   placeholder="Máx" 
+                   th:value="${precioMaxActual}">
+          </div>
+        </div>
+
+        <!-- Ordenar por precio / relevancia -->
+        <div class="col-md-4 col-lg-3">
+          <label class="form-label text-white small fw-bold mb-1">
+            <i class="bi bi-sort-down text-warning me-1"></i> Ordenar por:
+          </label>
+          <select name="orden" class="form-select filter-input">
+            <option value="relevancia" th:selected="${ordenActual == null or ordenActual == 'relevancia'}">Relevancia / Novedad</option>
+            <option value="precio_asc" th:selected="${ordenActual == 'precio_asc'}">Precio: Menor a Mayor</option>
+            <option value="precio_desc" th:selected="${ordenActual == 'precio_desc'}">Precio: Mayor a Menor</option>
+          </select>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="col-lg-3 d-flex gap-2">
+          <button type="submit" class="btn btn-warning fw-bold text-dark w-100 py-2">
+            <i class="bi bi-funnel-fill me-1"></i> Filtrar
+          </button>
+          <a th:href="@{/catalogo}" class="btn btn-outline-secondary py-2 text-white" title="Restablecer filtros">
+            <i class="bi bi-arrow-counterclockwise"></i>
+          </a>
+        </div>
+
+        <!-- Atajos rápidos de presupuesto -->
+        <div class="col-12 pt-2 border-top border-secondary border-opacity-25 d-flex flex-wrap align-items-center gap-2">
+          <span class="text-white-50 small me-1">Precios sugeridos:</span>
+          <a th:href="@{/catalogo(categoria=${categoriaSeleccionada}, precioMax=80, orden=${ordenActual})}" class="price-chip">Hasta S/ 80</a>
+          <a th:href="@{/catalogo(categoria=${categoriaSeleccionada}, precioMin=80, precioMax=130, orden=${ordenActual})}" class="price-chip">S/ 80 a S/ 130</a>
+          <a th:href="@{/catalogo(categoria=${categoriaSeleccionada}, precioMin=130, orden=${ordenActual})}" class="price-chip">Más de S/ 130</a>
+          <span class="ms-auto text-white-50 small">
+            Disponibles: <strong class="text-warning" th:text="${totalResultados != null ? totalResultados : #lists.size(productos)}">0</strong> prendas
+          </span>
+        </div>
+      </form>
+    </div>
+
+    <!-- 3. Mensaje si no hay productos coincidentes -->
+    <div th:if="${#lists.isEmpty(productos)}" class="text-center py-5 my-4">
+      <i class="bi bi-search text-warning display-4 mb-3 d-block"></i>
+      <h4 class="text-white fw-bold">No encontramos prendas con esos filtros</h4>
+      <p class="text-secondary small mb-3">Intenta cambiar el rango de precio o limpiar la búsqueda.</p>
+      <a th:href="@{/catalogo}" class="btn btn-warning text-dark fw-bold px-4">Ver Catálogo Completo</a>
+    </div>
+
+<!-- 4. Grid de Productos con Badges de Stock y Botón Hover -->
+    <div th:unless="${#lists.isEmpty(productos)}" class="row g-4">
+      <div class="col-6 col-md-4 col-lg-3" th:each="p : ${productos}">
+        <div class="product-card h-100 d-flex flex-column justify-content-between" 
+             style="background: #141414; border: 1px solid #2d2d2d; border-radius: 14px; overflow: hidden; transition: transform 0.3s ease, border-color 0.3s ease;">
+          <div>
+            <div class="product-img-wrap position-relative">
+              <img th:src="@{'/img/' + ${p.imagen}}" 
+                   th:alt="${p.nomProducto}"
+                   style="width: 100%; height: 260px; object-fit: cover;"
+                   onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=600';">
+              
+              <!-- Overlay hover -->
+              <div class="product-overlay">
+                <a th:href="@{'/producto/' + ${p.idProducto}}" class="btn btn-warning btn-sm fw-bold text-dark px-3 py-2 text-uppercase" style="border-radius: 6px;">
+                  Elegir Talla
+                </a>
+              </div>
+            </div>
+            
+            <div class="p-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="badge-cat" th:text="${p.categoria != null ? p.categoria.nomCategoria : 'Prenda'}">CATEGORÍA</span>
+                <span th:if="${p.descuentoPorcentaje != null and p.descuentoPorcentaje > 0}" 
+                      class="badge-discount" th:text="'-' + ${p.descuentoPorcentaje} + '%'"></span>
+              </div>
+              
+              <div class="product-name text-truncate mt-1">
+                <a th:href="@{'/producto/' + ${p.idProducto}}" class="text-white text-decoration-none fw-semibold" th:text="${p.nomProducto}">Nombre de Prenda</a>
+              </div>
+
+              <!-- Badges dinámicos según stock -->
+              <div class="mt-2">
+                <span th:if="${p.stock <= 5 and p.stock > 0}" class="badge bg-danger bg-opacity-25 text-danger border border-danger-subtle small px-2 py-1" style="font-size: 0.72rem;">
+                  <i class="bi bi-exclamation-triangle-fill me-1"></i> ¡Últimas <span th:text="${p.stock}"></span> unid.!
+                </span>
+                <span th:if="${p.stock > 5}" class="text-white-50 small" style="font-size: 0.75rem;">
+                  <i class="bi bi-check2 text-success me-1"></i> Stock: <span th:text="${p.stock}"></span> unid.
+                </span>
+                <span th:if="${p.stock <= 0}" class="badge bg-secondary text-white small px-2 py-1" style="font-size: 0.72rem;">
+                  Agotado
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Precios y Enlace Ver -->
+          <div class="p-3 pt-0 d-flex justify-content-between align-items-baseline border-top border-secondary border-opacity-10 mt-2">
+            <div>
+              <span class="price-tag fw-bold text-warning fs-5" th:text="'S/. ' + ${#numbers.formatDecimal(p.precio, 1, 2)}">S/. 0.00</span>
+              <span th:if="${p.precioOriginal != null}" class="price-old text-decoration-line-through text-white-50 ms-1 small" 
+                    th:text="'S/. ' + ${#numbers.formatDecimal(p.precioOriginal, 1, 2)}"></span>
+            </div>
+            <a th:href="@{'/producto/' + ${p.idProducto}}" class="text-warning text-decoration-none small fw-semibold">
+              Ver <i class="bi bi-chevron-right"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <!-- Footer -->
+  <div th:replace="~{fragments/footer :: footer}"></div>
+
+  <!-- ================= BOTÓN FLOTANTE RULETA RUDESTYLE ================= -->
+  <div id="btnRuletaFlotante" style="position: fixed; bottom: 30px; right: 30px; z-index: 9999; cursor: pointer;" onclick="abrirModalRuleta()">
+      <div style="background: linear-gradient(135deg, #1c1c1c, #000); border: 2px solid #d4af37; border-radius: 50px; padding: 12px 20px; box-shadow: 0 4px 20px rgba(212, 175, 55, 0.45); display: flex; align-items: center; gap: 10px;">
+          <i class="bi bi-gift-fill" style="color: #d4af37; font-size: 1.6rem; animation: pulseRuleta 1.5s infinite;"></i>
+          <div style="text-align: left; line-height: 1.2;">
+              <span style="display: block; color: #fff; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;">¿Tienes Suerte?</span>
+              <strong style="color: #d4af37; font-size: 0.95rem;">¡GIRA Y GANA!</strong>
+          </div>
+      </div>
+  </div>
+
+  <!-- ================= MODAL DE LA RULETA ================= -->
+  <div class="modal fade" id="modalRuleta" tabindex="-1" aria-hidden="true" style="z-index: 100000;">
+      <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content" style="background-color: #161616; color: #ffffff; border: 1px solid #d4af37; border-radius: 16px;">
+              <div class="modal-header border-0 pb-0 justify-content-end">
+                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body text-center pt-0 px-4 pb-4">
+                  <h3 class="fw-bold" style="color: #d4af37; letter-spacing: 1px;">RULETA RUDESTYLE</h3>
+                  <p class="text-secondary small mb-3">Gira la ruleta y copia tu cupón para aplicarlo manualmente en el checkout.</p>
+
+                  <div style="position: relative; width: 300px; height: 300px; margin: 0 auto;">
+                      <div style="position: absolute; top: -14px; left: 50%; transform: translateX(-50%); z-index: 100; font-size: 2rem; color: #d4af37; filter: drop-shadow(0 2px 4px #000);">▼</div>
+                      <canvas id="canvasRuleta" width="300" height="300"></canvas>
+                  </div>
+
+                  <div id="ruletaResultado" class="fw-bold fs-5 my-3" style="min-height: 32px; color: #d4af37;"></div>
+
+                  <button id="btnGirar" type="button" class="btn w-100 py-2 fw-bold" style="background-color: #d4af37; color: #000; border-radius: 8px;" onclick="iniciarGiroRuleta()">
+                      ¡GIRAR AHORA!
+                  </button>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <style>
+      @keyframes pulseRuleta {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.18); }
+          100% { transform: scale(1); }
+      }
+  </style>
+
+  <!-- Bootstrap JS y Lógica de la Ruleta -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+      const premiosRuleta = [
+          { label: "10% OFF", codigo: "RUDE10", bg: "#1f1f1f", text: "#d4af37" },
+          { label: "Sigue Intentando", codigo: null, bg: "#2a2a2a", text: "#888888" },
+          { label: "15% OFF", codigo: "RUDE15", bg: "#d4af37", text: "#000000" },
+          { label: "S/ 15 Delivery", codigo: "PROMOENVIO", bg: "#1f1f1f", text: "#d4af37" },
+          { label: "20% OFF", codigo: "RUDE20", bg: "#d4af37", text: "#000000" },
+          { label: "Sin suerte", codigo: null, bg: "#2a2a2a", text: "#888888" }
+      ];
+
+      let startAngle = 0;
+      const arc = Math.PI / (premiosRuleta.length / 2);
+      let spinTimeout = null;
+      let spinArcStart = 10;
+      let spinTime = 0;
+      let spinTimeTotal = 0;
+
+      function renderRuleta() {
+          const canvas = document.getElementById("canvasRuleta");
+          if (!canvas || !canvas.getContext) return;
+          const ctx = canvas.getContext("2d");
+          ctx.clearRect(0, 0, 300, 300);
+
+          for (let i = 0; i < premiosRuleta.length; i++) {
+              const angle = startAngle + i * arc;
+              ctx.fillStyle = premiosRuleta[i].bg;
+              ctx.beginPath();
+              ctx.arc(150, 150, 140, angle, angle + arc, false);
+              ctx.arc(150, 150, 25, angle + arc, angle, true);
+              ctx.stroke();
+              ctx.fill();
+              ctx.save();
+
+              ctx.fillStyle = premiosRuleta[i].text;
+              ctx.translate(150 + Math.cos(angle + arc / 2) * 85, 150 + Math.sin(angle + arc / 2) * 85);
+              ctx.rotate(angle + arc / 2 + Math.PI / 2);
+              ctx.font = 'bold 12px sans-serif';
+              ctx.fillText(premiosRuleta[i].label, -ctx.measureText(premiosRuleta[i].label).width / 2, 0);
+              ctx.restore();
+          }
+      }
+
+      function girarAnimacion() {
+          spinTime += 30;
+          if (spinTime >= spinTimeTotal) {
+              finalizarGiro();
+              return;
+          }
+          const spinAngle = spinArcStart - easeOutCustom(spinTime, 0, spinArcStart, spinTimeTotal);
+          startAngle += (spinAngle * Math.PI / 180);
+          renderRuleta();
+          spinTimeout = setTimeout(girarAnimacion, 30);
+      }
+
+      function finalizarGiro() {
+          clearTimeout(spinTimeout);
+          const degrees = startAngle * 180 / Math.PI + 90;
+          const arcd = arc * 180 / Math.PI;
+          const index = Math.floor((360 - degrees % 360) / arcd);
+          const premio = premiosRuleta[index];
+
+          const resDiv = document.getElementById("ruletaResultado");
+          const btnGirar = document.getElementById("btnGirar");
+
+          if (premio && premio.codigo) {
+              resDiv.innerHTML = `
+                <div class="p-2 rounded" style="background: rgba(212, 175, 55, 0.1); border: 1px dashed #d4af37;">
+                  <span class="text-success"><i class="bi bi-check-circle-fill"></i> ¡Ganaste ${premio.label}!</span><br>
+                  <small class="text-white">Usa el código: <b id="codigoTexto" class="text-warning font-monospace fs-5">${premio.codigo}</b></small>
+                  <div class="mt-2">
+                    <button class="btn btn-sm btn-outline-warning" onclick="copiarCodigo('${premio.codigo}')">
+                      <i class="bi bi-clipboard"></i> Copiar código
+                    </button>
+                  </div>
+                </div>
+              `;
+          } else {
+              resDiv.innerHTML = '<span class="text-secondary">¡Casi! Mejor suerte en la próxima tirada.</span>';
+          }
+
+          btnGirar.disabled = false;
+          btnGirar.innerText = "¡GIRAR DE NUEVO!";
+      }
+
+      function copiarCodigo(codigo) {
+          navigator.clipboard.writeText(codigo).then(() => {
+              alert("Código " + codigo + " copiado al portapapeles. Pégalo en el checkout para obtener tu descuento.");
+          });
+      }
+
+      function easeOutCustom(t, b, c, d) {
+          const ts = (t /= d) * t;
+          const tc = ts * t;
+          return b + c * (tc + -3 * ts + 3 * t);
+      }
+
+      function abrirModalRuleta() {
+          const modalEl = document.getElementById('modalRuleta');
+          const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+          modal.show();
+          setTimeout(renderRuleta, 250);
+
+          const btnGirar = document.getElementById("btnGirar");
+          btnGirar.disabled = false;
+          btnGirar.innerText = "¡GIRAR AHORA!";
+      }
+
+      function iniciarGiroRuleta() {
+          const btnGirar = document.getElementById("btnGirar");
+          btnGirar.disabled = true;
+          btnGirar.innerText = "Girando...";
+
+          spinArcStart = Math.random() * 10 + 10;
+          spinTime = 0;
+          spinTimeTotal = Math.random() * 2500 + 3500;
+          girarAnimacion();
+      }
+  </script>
+</body>
+</html>

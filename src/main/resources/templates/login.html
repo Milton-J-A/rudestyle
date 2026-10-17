@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/head :: head}"></head>
+<body>
+
+  <!-- Navbar -->
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+  <main class="container my-5 d-flex justify-content-center align-items-center" style="min-height: 65vh;">
+    <div class="bg-dark p-4 p-md-5 rounded border border-secondary border-opacity-25" style="max-width: 420px; width: 100%;">
+      
+      <div class="text-center mb-4">
+        <div class="rs-section-title">Acceso a Cuenta</div>
+        <h3 class="text-light fw-bold">Iniciar Sesión</h3>
+      </div>
+
+      <!-- Alerta si las credenciales son incorrectas -->
+      <div th:if="${error}" class="alert alert-danger py-2 small" th:text="${error}"></div>
+      
+      <!-- Mensaje si acaba de registrarse exitosamente -->
+      <div th:if="${param.registrado}" class="alert alert-success py-2 small">
+        ¡Cuenta creada con éxito! Ya puedes iniciar sesión.
+      </div>
+
+      <form th:action="@{/login}" method="post">
+        <div class="mb-3">
+          <label class="form-label text-secondary small">Correo Electrónico</label>
+          <input type="email" name="email" class="form-control bg-black text-light border-secondary" required placeholder="correo@ejemplo.com">
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label text-secondary small">Contraseña</label>
+          <input type="password" name="contrasena" class="form-control bg-black text-light border-secondary" required placeholder="••••••••">
+        </div>
+
+        <button type="submit" class="rs-btn-primary w-100 border-0 py-2 mb-3">Ingresar</button>
+      </form>
+
+      <div class="text-center">
+        <span class="text-secondary small">¿No tienes una cuenta? </span>
+        <a th:href="@{/registro}" class="text-warning text-decoration-none small fw-bold">Regístrate aquí</a>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

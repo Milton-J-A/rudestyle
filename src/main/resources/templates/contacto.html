@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/head :: head}">
+  <style>
+    .form-label-custom {
+      color: #ffffff !important;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 0.4rem;
+    }
+    .form-control-custom {
+      background-color: #1a1a1a !important;
+      border: 1px solid #444 !important;
+      color: #ffffff !important;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+    }
+    .form-control-custom:focus {
+      border-color: #d4af37 !important;
+      box-shadow: 0 0 8px rgba(212, 175, 55, 0.4) !important;
+      color: #ffffff !important;
+    }
+    .contact-card {
+      background-color: #141414;
+      border: 1px solid #2d2d2d;
+      border-radius: 14px;
+      padding: 28px;
+    }
+    .policy-box {
+      background-color: #181818;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 16px;
+      transition: border-color 0.2s ease;
+    }
+    .policy-box:hover {
+      border-color: #d4af37;
+    }
+    .postventa-box {
+      background-color: #1a1506;
+      border: 1px solid #d4af37;
+      border-radius: 10px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body class="bg-black text-white">
+
+  <!-- Navbar -->
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+  <main class="container my-5" style="min-height: 75vh;">
+    
+    <!-- Encabezado -->
+    <div class="text-center mb-5">
+      <span class="badge border border-warning text-warning px-3 py-2 text-uppercase mb-2" style="letter-spacing: 1.5px; font-size: 0.75rem;">
+        Atención & Soporte Postventa
+      </span>
+      <h1 class="display-5 fw-bold text-white mb-2">CENTRO DE CONTACTO RUDESTYLE</h1>
+      <p class="text-white-50 mx-auto" style="max-width: 650px;">
+        Gestiona tus pedidos, solicita un cambio de talla en Lima o tramita la devolución de tu prenda dentro de nuestra garantía de 15 a 30 días hábiles.
+      </p>
+    </div>
+    
+   <!-- Mensaje de Confirmación con Enlace Directo a WhatsApp y Base de Datos -->
+    <div th:if="${mensajeExito != null}" class="alert alert-dark border border-warning p-4 mb-5 rounded-3 shadow text-start" style="background: linear-gradient(135deg, #1b170c, #101010);">
+      <div class="d-flex align-items-start gap-3">
+        <i class="bi bi-patch-check-fill text-warning fs-2"></i>
+        <div class="w-100">
+          <h4 class="fw-bold text-warning mb-1">¡Solicitud Registrada con Éxito!</h4>
+          <p class="text-white mb-2" th:text="${mensajeExito}"></p>
+          
+          <div class="d-flex flex-wrap align-items-center gap-3 mt-3">
+            <span class="badge bg-warning text-dark fw-bold px-3 py-2 fs-6" th:text="'Ticket: ' + ${ticketGenerado}">TCK-123456</span>
+            
+            <!-- Botón directo para abrir WhatsApp con el ticket pre-cargado -->
+            <a th:if="${enlaceWhatsApp != null}" th:href="${enlaceWhatsApp}" target="_blank" class="btn btn-success fw-bold text-white shadow-sm d-flex align-items-center gap-2 px-3 py-2">
+              <i class="bi bi-whatsapp fs-5"></i> Continuar Coordinación por WhatsApp
+            </a>
+          </div>
+          
+          <small class="text-white-50 d-block mt-3">* Tu requerimiento quedó registrado formalmente en nuestro sistema de atención.</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-5">
+      
+      <!-- Columna Izquierda: Formulario Dinámico -->
+      <div class="col-lg-7">
+        <div class="contact-card shadow-sm">
+          <h4 class="fw-bold text-warning mb-4">
+            <i class="bi bi-envelope-paper-fill me-2"></i>Envíanos un Mensaje
+          </h4>
+
+          <form th:action="@{/contacto/enviar}" method="POST" id="formContacto" enctype="multipart/form-data">
+            
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-label-custom" for="nombre">Nombre Completo:</label>
+                <input type="text" id="nombre" name="nombre" class="form-control form-control-custom" placeholder="Tu nombre y apellido" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label-custom" for="correo">Correo Electrónico:</label>
+                <input type="email" id="correo" name="correo" class="form-control form-control-custom" placeholder="ejemplo@correo.com" required>
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-label-custom" for="telefono">Teléfono / WhatsApp:</label>
+                <input type="tel" id="telefono" name="telefono" class="form-control form-control-custom" placeholder="999 888 777" required>
+              </div>
+              
+              <!-- Selector de Motivo -->
+              <div class="col-md-6">
+                <label class="form-label-custom" for="motivo">Motivo de tu Consulta:</label>
+                <select id="motivo" name="motivo" class="form-select form-control-custom" onchange="actualizarFormularioPostventa(this.value)" required>
+                  <option value="CONSULTA" selected>Consulta General / Catálogo</option>
+                  <option value="CAMBIO_TALLA">Cambio de Talla o Prenda</option>
+                  <option value="DEVOLUCION">Devolución y Reembolso (Garantía)</option>
+                  <option value="MAYORISTA">Compras al por Mayor</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- CASO 1: CAMBIO DE TALLA -->
+            <div id="seccionCambioTalla" class="postventa-box" style="display: none;">
+              <div class="d-flex align-items-center gap-2 mb-3 text-warning fw-bold small">
+                <i class="bi bi-arrow-left-right fs-5"></i> Solicitud de Cambio de Talla (Hasta 30 días hábiles)
+              </div>
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label class="form-label-custom" for="codigoOrdenCambio">Código de Orden:</label>
+                  <input type="text" id="codigoOrdenCambio" name="codigoOrdenCambio" class="form-control form-control-custom" placeholder="Ej. RUDE-A1B2C3D4">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label-custom" for="tallaNueva">Prenda y Talla Deseada:</label>
+                  <input type="text" id="tallaNueva" name="tallaNueva" class="form-control form-control-custom" placeholder="Ej. Casaca Cuero (de M a L)">
+                </div>
+              </div>
+              <div>
+                <label class="form-label-custom" for="fotoPrendaCambio">
+                  <i class="bi bi-camera me-1 text-warning"></i> Foto de la prenda con etiqueta (Opcional):
+                </label>
+                <input type="file" id="fotoPrendaCambio" name="fotoPrendaCambio" class="form-control form-control-custom" accept="image/*">
+                <small class="text-white-50" style="font-size: 0.75rem;">Para verificar que la etiqueta se mantenga intacta.</small>
+              </div>
+            </div>
+
+            <!-- CASO 2: DEVOLUCIÓN DE PRODUCTO Y REEMBOLSO -->
+            <div id="seccionDevolucion" class="postventa-box" style="display: none;">
+              <div class="d-flex align-items-center gap-2 mb-3 text-warning fw-bold small">
+                <i class="bi bi-cash-stack fs-5"></i> Solicitud de Devolución & Reembolso (Garantía 15-30 días)
+              </div>
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label class="form-label-custom" for="codigoOrdenDev">Código de Orden:</label>
+                  <input type="text" id="codigoOrdenDev" name="codigoOrdenDev" class="form-control form-control-custom" placeholder="Ej. RUDE-A1B2C3D4">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label-custom" for="medioReembolso">Medio para Devolución:</label>
+                  <input type="text" id="medioReembolso" name="medioReembolso" class="form-control form-control-custom" placeholder="Ej. Yape / Plin / BCP (999...)">
+                </div>
+              </div>
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label class="form-label-custom" for="motivoDevolucion">Razón de la Devolución:</label>
+                  <select id="motivoDevolucion" name="motivoDevolucion" class="form-select form-control-custom">
+                    <option value="DEFECTO">Falla o desperfecto textil</option>
+                    <option value="EXPECTATIVAS">No cumplió mis expectativas</option>
+                    <option value="PEDIDO_INCORRECTO">Recibí una prenda diferente</option>
+                    <option value="OTRO">Otro motivo</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label-custom" for="fotoComprobante">
+                    <i class="bi bi-paperclip me-1 text-warning"></i> Foto Prenda / Boleta:
+                  </label>
+                  <input type="file" id="fotoComprobante" name="fotoComprobante" class="form-control form-control-custom" accept="image/*">
+                </div>
+              </div>
+            </div>
+
+            <!-- Detalle General -->
+            <div class="mb-4">
+              <label class="form-label-custom" for="mensaje">Detalle de tu Mensaje / Comentario:</label>
+              <textarea id="mensaje" name="mensaje" rows="4" class="form-control form-control-custom" placeholder="Escribe aquí los detalles de tu consulta o las observaciones de tu solicitud..." required></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-warning w-100 py-3 fw-bold text-dark fs-6 text-uppercase shadow">
+              <i class="bi bi-send-fill me-2"></i> Enviar Solicitud
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Columna Derecha: Políticas y Respaldo -->
+      <div class="col-lg-5">
+        <div class="contact-card shadow-sm h-100 d-flex flex-column justify-content-between">
+          <div>
+            <h4 class="fw-bold text-warning mb-4">
+              <i class="bi bi-shield-check me-2"></i>Políticas de Cambio & Garantía
+            </h4>
+
+            <!-- Caja 1: Plazo 15 a 30 días -->
+            <div class="policy-box">
+              <div class="d-flex gap-3">
+                <i class="bi bi-calendar-check text-warning fs-3"></i>
+                <div>
+                  <h6 class="text-white fw-bold mb-1">Plazo de 15 a 30 Días Hábiles</h6>
+                  <p class="text-white-50 small mb-0">
+                    Cuentas con hasta 30 días calendario tras recibir tu pedido para solicitar un cambio de prenda o devolución total de tu dinero.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Caja 2: Condiciones -->
+            <div class="policy-box">
+              <div class="d-flex gap-3">
+                <i class="bi bi-tag-fill text-warning fs-3"></i>
+                <div>
+                  <h6 class="text-white fw-bold mb-1">Estado de la Prenda</h6>
+                  <p class="text-white-50 small mb-0">
+                    La prenda no debe mostrar signos de uso ni lavado, y debe conservar la etiqueta original cosida y su empaque RudeStyle.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Caja 3: Cambio de Talla en Lima -->
+            <div class="policy-box">
+              <div class="d-flex gap-3">
+                <i class="bi bi-truck text-warning fs-3"></i>
+                <div>
+                  <h6 class="text-white fw-bold mb-1">Coordinación de Entrega en Lima</h6>
+                  <p class="text-white-50 small mb-0">
+                    Para cambios de talla, nuestro motorizado acude a tu domicilio en Lima y Callao realizando el canje de la nueva prenda al instante.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Canales de Atención Inmediata -->
+          <div class="p-3 rounded border border-secondary border-opacity-50 mt-4" style="background-color: #101010;">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <span class="d-block fw-bold text-white small">¿Atención Directa?</span>
+                <small class="text-white-50">Escríbenos al WhatsApp oficial:</small>
+              </div>
+              <a href="https://wa.me/51999888777" target="_blank" class="btn btn-sm btn-outline-warning fw-bold">
+                <i class="bi bi-whatsapp me-1"></i> +51 999 888 777
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <div th:replace="~{fragments/footer :: footer}"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function actualizarFormularioPostventa(motivo) {
+      const secCambio = document.getElementById('seccionCambioTalla');
+      const secDev = document.getElementById('seccionDevolucion');
+      
+      const codCambio = document.getElementById('codigoOrdenCambio');
+      const codDev = document.getElementById('codigoOrdenDev');
+      const tallaNueva = document.getElementById('tallaNueva');
+      const medioReembolso = document.getElementById('medioReembolso');
+
+      // Ocultar y resetear requeridos por defecto
+      secCambio.style.display = 'none';
+      secDev.style.display = 'none';
+      codCambio.required = false;
+      codDev.required = false;
+      tallaNueva.required = false;
+      medioReembolso.required = false;
+
+      if (motivo === 'CAMBIO_TALLA') {
+        secCambio.style.display = 'block';
+        codCambio.required = true;
+        tallaNueva.required = true;
+      } else if (motivo === 'DEVOLUCION') {
+        secDev.style.display = 'block';
+        codDev.required = true;
+        medioReembolso.required = true;
+      }
+    }
+  </script>
+</body>
+</html>

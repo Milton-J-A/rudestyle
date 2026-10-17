@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/head :: head}"></head>
+<body class="bg-black text-white">
+
+  <!-- Navbar -->
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+  <main class="container my-5">
+    <nav aria-label="breadcrumb" class="mb-4">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/catalogo}" class="text-warning text-decoration-none">Catálogo</a></li>
+        <li class="breadcrumb-item active text-secondary" aria-current="page" th:text="${producto.nomProducto}">Prenda</li>
+      </ol>
+    </nav>
+
+    <div class="row g-5 align-items-center">
+      <!-- Imagen de la prenda -->
+      <div class="col-md-6 text-center">
+        <div class="p-3 border border-secondary rounded-4 bg-dark shadow-lg">
+          <img th:src="@{'/img/' + ${producto.imagen}}" 
+               th:alt="${producto.nomProducto}" 
+               class="img-fluid rounded-3" 
+               style="max-height: 480px; object-fit: cover;"
+               onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=600';">
+        </div>
+      </div>
+
+      <!-- Información y Formulario de Compra -->
+      <div class="col-md-6">
+        <span class="badge bg-warning text-dark px-3 py-2 fw-bold text-uppercase mb-2" 
+              th:text="${producto.categoria != null ? producto.categoria.nomCategoria : 'RudeStyle'}">CATEGORÍA</span>
+
+        <h1 class="fw-bold mt-2" th:text="${producto.nomProducto}">Nombre de la Prenda</h1>
+        
+        <div class="d-flex align-items-baseline gap-3 my-3">
+          <span class="fs-2 fw-bold text-warning" th:text="'S/. ' + ${producto.precio}">S/. 0.00</span>
+          <span th:if="${producto.precioOriginal != null}" class="fs-5 text-decoration-line-through text-secondary" 
+                th:text="'S/. ' + ${producto.precioOriginal}"></span>
+          <span th:if="${producto.descuentoPorcentaje != null and producto.descuentoPorcentaje > 0}" 
+                class="badge bg-danger" th:text="'-' + ${producto.descuentoPorcentaje} + '%'"></span>
+        </div>
+
+        <p class="text-secondary lead fs-6" th:text="${producto.descripcion != null ? producto.descripcion : 'Prenda con acabado de alta calidad y diseño urbano moderno.'}">
+          Descripción de la prenda.
+        </p>
+
+        <hr class="border-secondary my-4">
+
+        <!-- Formulario POST hacia el carrito -->
+        <form th:action="@{/carrito/agregar}" method="POST">
+          <input type="hidden" name="idProducto" th:value="${producto.idProducto}">
+
+          <!-- Selector de Tallas -->
+          <div class="mb-4">
+            <label class="fw-bold d-block mb-2 text-uppercase" style="letter-spacing: 1px;">Seleccionar Talla:</label>
+            <div class="btn-group" role="group">
+              <th:block th:each="talla, iter : ${tallas}">
+                <input type="radio" class="btn-check" name="talla" th:id="'talla_' + ${talla}" th:value="${talla}" th:checked="${iter.index == 0}" required>
+                <label class="btn btn-outline-warning px-4 py-2" th:for="'talla_' + ${talla}" th:text="${talla}">M</label>
+              </th:block>
+            </div>
+          </div>
+
+          <!-- Selector de Cantidad y Stock -->
+          <div class="mb-4" th:if="${producto.stock > 0}">
+            <label class="fw-bold d-block mb-2 text-uppercase" style="letter-spacing: 1px;">Cantidad:</label>
+            <div class="d-flex align-items-center gap-3">
+              <input type="number" name="cantidad" value="1" min="1" th:max="${producto.stock}" 
+                     class="form-control text-center bg-dark text-white border-secondary" style="width: 90px;">
+              <small class="text-secondary" th:text="'(' + ${producto.stock} + ' unidades disponibles)'"></small>
+            </div>
+          </div>
+
+          <div class="mb-4" th:unless="${producto.stock > 0}">
+            <span class="badge bg-danger px-3 py-2 fw-bold text-uppercase">Agotado</span>
+          </div>
+
+          <!-- Botón de compra -->
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-warning py-3 fw-bold fs-5 shadow" th:disabled="${producto.stock <= 0}">
+              <i class="bi bi-cart-plus me-2"></i> Añadir a la Bolsa
+            </button>
+            <a th:href="@{/catalogo}" class="btn btn-outline-secondary py-2">
+              Volver al Catálogo
+            </a>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

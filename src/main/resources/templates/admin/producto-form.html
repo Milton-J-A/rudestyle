@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/head :: head}"></head>
+<body>
+
+  <!-- Navbar -->
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+  <main class="container my-5" style="min-height: 70vh;">
+    <div class="mb-4">
+      <a th:href="@{/admin/productos}" class="text-warning text-decoration-none small mb-2 d-inline-block">
+        <i class="bi bi-arrow-left"></i> Volver al listado
+      </a>
+      <div class="rs-section-title">Gestión de Inventario</div>
+      <h2 class="rs-section-h2" th:text="${esEdicion ? 'Editar Prenda' : 'Registrar Nueva Prenda'}"></h2>
+    </div>
+
+    <div class="bg-dark p-4 p-md-5 rounded border border-secondary border-opacity-25" style="max-width: 750px;">
+      <form th:action="@{/admin/productos/guardar}" th:object="${producto}" method="post">
+        
+        <!-- ID Oculto para identificar si es Edición -->
+        <input type="hidden" th:field="*{idProducto}">
+
+        <div class="mb-3">
+          <label class="form-label text-secondary small">Nombre de la Prenda</label>
+          <input type="text" th:field="*{nomProducto}" class="form-control bg-black text-light border-secondary" required placeholder="Ej. Polera Oversize Rude Black">
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label text-secondary small">Categoría</label>
+            <select th:field="*{categoria}" class="form-select bg-black text-light border-secondary" required>
+              <option value="">-- Seleccionar Categoría --</option>
+              <option th:each="c : ${categorias}" 
+                      th:value="${c.idCategoria}" 
+                      th:text="${c.nomCategoria}"></option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-secondary small">Precio (S/.)</label>
+            <input type="number" step="0.01" th:field="*{precio}" class="form-control bg-black text-light border-secondary" required placeholder="0.00">
+          </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label text-secondary small">Stock Disponible</label>
+            <input type="number" th:field="*{stock}" class="form-control bg-black text-light border-secondary" required placeholder="0">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-secondary small">Nombre del archivo de imagen</label>
+            <input type="text" th:field="*{imagen}" class="form-control bg-black text-light border-secondary" placeholder="ejemplo.jpg">
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label text-secondary small">Descripción</label>
+          <textarea th:field="*{descripcion}" class="form-control bg-black text-light border-secondary" rows="3" placeholder="Detalles de materiales, corte y estilo..."></textarea>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label class="form-label text-secondary small">Tallas Disponibles</label>
+            <input type="text" th:field="*{tallasDisponibles}" class="form-control bg-black text-light border-secondary" placeholder="S, M, L, XL">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-secondary small">Colores Disponibles</label>
+            <input type="text" th:field="*{coloresDisponibles}" class="form-control bg-black text-light border-secondary" placeholder="Negro, Blanco, Beige">
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" th:field="*{destacado}" id="checkDestacado">
+            <label class="form-check-label text-light small" for="checkDestacado">Marcar como Prenda Destacada</label>
+          </div>
+        </div>
+
+        <div class="d-flex gap-3">
+          <button type="submit" class="rs-btn-primary border-0 py-2 px-4">Guardar Prenda</button>
+          <a th:href="@{/admin/productos}" class="btn btn-outline-secondary py-2 px-4">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>
