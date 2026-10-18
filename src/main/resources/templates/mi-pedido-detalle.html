@@ -1,77 +1,447 @@
+
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="es">
 <head th:replace="~{fragments/head :: head}"></head>
 <body>
 
-  <!-- Navbar -->
-  <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <!-- Navbar -->
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-  <main class="container my-5" style="min-height: 70vh;">
-    <div class="mb-4">
-      <a th:href="@{/mis-pedidos}" class="text-warning text-decoration-none small mb-2 d-inline-block">
-        <i class="bi bi-arrow-left"></i> Volver a Mis Pedidos
-      </a>
-      <div class="rs-section-title">Comprobante de Pedido</div>
-      <h2 class="rs-section-h2" th:text="'Orden: ' + ${pedido.codigoOrden}"></h2>
-    </div>
+    <main class="container my-5" style="min-height: 70vh;">
 
-    <div class="row g-4">
-      <div class="col-lg-4">
-        <div class="bg-dark p-4 rounded border border-secondary border-opacity-25">
-          <h5 class="text-light mb-3">Datos de Entrega</h5>
-          <p class="mb-1 text-secondary small">Receptor:</p>
-          <p class="text-light fw-bold" th:text="${pedido.nombresCliente}"></p>
-
-          <p class="mb-1 text-secondary small">Destino:</p>
-          <p class="text-light" th:text="${pedido.direccionEnvio + ' - ' + pedido.departamento}"></p>
-
-          <p class="mb-1 text-secondary small">Estado Actual:</p>
-          <span class="badge bg-warning text-dark fw-bold" th:text="${pedido.estadoPago}"></span>
+        <div class="mb-4">
+            <a th:href="@{/mis-pedidos}"
+               class="text-warning text-decoration-none small mb-2 d-inline-block">
+                <i class="bi bi-arrow-left"></i> Volver a Mis Pedidos
+            </a>
+            <div class="rs-section-title">Comprobante de Pedido</div>
+            <h2 class="rs-section-h2"
+                th:text="'Orden: ' + ${pedido.codigoOrden}"></h2>
         </div>
-      </div>
 
-      <div class="col-lg-8">
-        <div class="bg-dark p-4 rounded border border-secondary border-opacity-25">
-          <h5 class="text-light mb-3">Prendas Adquiridas</h5>
-          <div class="table-responsive">
-            <table class="table table-dark align-middle mb-0">
-              <thead>
-                <tr class="text-secondary border-secondary">
-                  <th>Prenda</th>
-                  <th class="text-center">Cant.</th>
-                  <th>Precio Unit.</th>
-                  <th class="text-end">Subtotal</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr th:each="d : ${detalles}" class="border-secondary">
-                  <td>
-                    <div class="d-flex align-items-center gap-3">
-                      <img th:src="@{'/img/' + ${d.producto.imagen}}" 
-                           style="width: 45px; height: 55px; object-fit: cover; border-radius: 4px;"
-                           onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=600';">
-                      <span class="text-light fw-bold" th:text="${d.producto.nomProducto}"></span>
+        <div class="row g-4">
+
+            <div class="col-lg-4">
+                <div class="bg-dark p-4 rounded border border-secondary border-opacity-25">
+                    <h5 class="text-light mb-3">Datos de Entrega</h5>
+
+                    <p class="mb-1 text-secondary small">Receptor:</p>
+                    <p class="text-light fw-bold"
+                       th:text="${pedido.nombresCliente}"></p>
+
+                    <p class="mb-1 text-secondary small">Destino:</p>
+                    <p class="text-light"
+                       th:text="${pedido.direccionEnvio + ' - ' + pedido.departamento}"></p>
+
+                    <p class="mb-1 text-secondary small">Estado Actual:</p>
+                    <span class="badge bg-warning text-dark fw-bold"
+                          th:text="${pedido.estadoPago}"></span>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="bg-dark p-4 rounded border border-secondary border-opacity-25">
+                    <h5 class="text-light mb-3">Prendas Adquiridas</h5>
+
+                    <div class="table-responsive">
+                        <table class="table table-dark align-middle mb-0">
+
+                            <thead>
+                                <tr class="text-secondary border-secondary">
+                                    <th>Prenda</th>
+                                    <th class="text-center">Cant.</th>
+                                    <th>Precio Unit.</th>
+
+                                    <!-- ===== INICIO DE LA MODIFICACIÓN HECHA POR MARCO ===== -->
+                                    <th class="text-center">Califica tu prenda</th>
+                                    <!-- ===== FIN DE LA MODIFICACIÓN HECHA POR MARCO ===== -->
+
+                                    <th class="text-end">Subtotal</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                <!-- ===== INICIO DE LA MODIFICACIÓN HECHA POR MARCO ===== -->
+                                <th:block th:each="d : ${detalles}">
+
+                                    <tr class="border-secondary">
+                                        <td>
+                                            <div class="d-flex align-items-center gap-3">
+                                                <img th:src="@{'/img/' + ${d.producto.imagen}}"
+                                                     style="width: 45px; height: 55px; object-fit: cover; border-radius: 4px;"
+                                                     onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=600';">
+
+                                                <span class="text-light fw-bold"
+                                                      th:text="${d.producto.nomProducto}"></span>
+                                            </div>
+                                        </td>
+
+                                        <td class="text-center" th:text="${d.cantidad}"></td>
+
+                                        <td th:text="'S/. ' + ${#numbers.formatDecimal(d.precioUnitario, 1, 2)}"></td>
+
+                                        <td class="text-center">
+
+                                            <!-- Mensaje único cuando la prenda ya fue calificada -->
+                                            <small class="d-block text-success fw-semibold"
+                                                   th:if="${detallesCalificados.contains(d.idDetalle)}"
+                                                   data-rating-thanks>
+                                                ¡Gracias por tu calificación!
+                                            </small>
+
+                                            <!-- Botón disponible únicamente si todavía no fue calificada -->
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-warning rating-toggle"
+                                                    th:unless="${detallesCalificados.contains(d.idDetalle)}"
+                                                    th:attr="data-panel-id=${'panel-' + d.idDetalle}">
+                                                Calificar
+                                            </button>
+
+                                            <small class="d-block text-secondary mt-1"
+                                                   th:unless="${detallesCalificados.contains(d.idDetalle)}"
+                                                   data-rating-status></small>
+                                        </td>
+
+                                        <td class="text-end text-warning fw-bold"
+                                            th:text="'S/. ' + ${#numbers.formatDecimal(d.subtotal, 1, 2)}"></td>
+                                    </tr>
+
+                                    <tr class="rating-panel-row d-none"
+                                        th:id="${'panel-' + d.idDetalle}">
+                                        <td colspan="5">
+                                            <div class="rating-panel rounded p-3 p-md-4">
+                                                <h6 class="text-light mb-2">
+                                                    ¿Qué te pareció esta prenda?
+                                                </h6>
+
+                                                <p class="text-secondary small mb-3">
+                                                    Tu opinión ayuda a otros clientes a elegir mejor.
+                                                </p>
+
+                                                <form class="rating-form"
+                                                      th:attr="data-url=@{/mis-pedidos/detalle/{idPedido}/calificar(idPedido=${pedido.idPedido})}">
+
+                                                    <input type="hidden"
+                                                           name="idDetalle"
+                                                           th:value="${d.idDetalle}">
+
+                                                    <label class="d-block text-light mb-2">
+                                                        Tu puntuación
+                                                    </label>
+
+                                                    <div class="rating-stars mb-4"
+                                                         role="radiogroup"
+                                                         aria-label="Selecciona de una a cinco estrellas">
+
+                                                        <label class="rating-star">
+                                                            <input type="radio" name="puntuacion" value="1" required>
+                                                            <span aria-hidden="true">★</span>
+                                                        </label>
+                                                        <label class="rating-star">
+                                                            <input type="radio" name="puntuacion" value="2" required>
+                                                            <span aria-hidden="true">★</span>
+                                                        </label>
+                                                        <label class="rating-star">
+                                                            <input type="radio" name="puntuacion" value="3" required>
+                                                            <span aria-hidden="true">★</span>
+                                                        </label>
+                                                        <label class="rating-star">
+                                                            <input type="radio" name="puntuacion" value="4" required>
+                                                            <span aria-hidden="true">★</span>
+                                                        </label>
+                                                        <label class="rating-star">
+                                                            <input type="radio" name="puntuacion" value="5" required>
+                                                            <span aria-hidden="true">★</span>
+                                                        </label>
+                                                    </div>
+
+                                                    <label class="d-block text-light mb-2">
+                                                        ¿Qué te gustó? (opcional)
+                                                    </label>
+
+                                                    <div class="rating-tags mb-3">
+                                                        <th:block th:each="etiqueta : ${etiquetasCalificacion}">
+                                                            <label class="rating-tag"
+                                                                   th:if="${etiqueta.nombreEtiqueta != null or etiqueta.nombre != null}">
+                                                                <input type="checkbox"
+                                                                       name="etiquetas"
+                                                                       th:value="${etiqueta.idEtiqueta}">
+                                                                <span th:text="${etiqueta.nombreEtiqueta != null ? etiqueta.nombreEtiqueta : etiqueta.nombre}"></span>
+                                                            </label>
+                                                        </th:block>
+                                                    </div>
+
+                                                    <div class="rating-message small mb-3"
+                                                         role="status"
+                                                         aria-live="polite"></div>
+
+                                                    <div class="d-flex flex-wrap gap-2">
+                                                        <button type="submit"
+                                                                class="btn btn-warning btn-sm fw-bold">
+                                                            Enviar calificación
+                                                        </button>
+                                                        <button type="button"
+                                                                class="btn btn-outline-light btn-sm rating-cancel">
+                                                            Cancelar
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                </th:block>
+                                <!-- ===== FIN DE LA MODIFICACIÓN HECHA POR MARCO ===== -->
+                            </tbody>
+                        </table>
                     </div>
-                  </td>
-                  <td class="text-center" th:text="${d.cantidad}"></td>
-                  <td th:text="'S/. ' + ${#numbers.formatDecimal(d.precioUnitario, 1, 2)}"></td>
-                  <td class="text-end text-warning fw-bold" th:text="'S/. ' + ${#numbers.formatDecimal(d.subtotal, 1, 2)}"></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
 
-          <div class="d-flex justify-content-between mt-4 pt-3 border-top border-secondary">
-            <span class="text-light fs-5 fw-bold">Total Pagado:</span>
-            <span class="text-warning fs-5 fw-bold" th:text="'S/. ' + ${#numbers.formatDecimal(pedido.total, 1, 2)}"></span>
-          </div>
+                    <div class="d-flex justify-content-between mt-4 pt-3 border-top border-secondary">
+                        <span class="text-light fs-5 fw-bold">Total Pagado:</span>
+                        <span class="text-warning fs-5 fw-bold"
+                              th:text="'S/. ' + ${#numbers.formatDecimal(pedido.total, 1, 2)}"></span>
+                    </div>
+
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  </main>
+    </main>
 
-  <!-- Footer -->
-  <div th:replace="~{fragments/footer :: footer}"></div>
+    <!-- Footer -->
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <!-- ===== INICIO DE LA MODIFICACIÓN HECHA POR MARCO ===== -->
+    <style>
+        .rating-panel {
+            background: #202020;
+            border: 1px solid rgba(255, 193, 7, 0.35);
+        }
+
+        .rating-stars {
+            display: flex;
+            gap: 8px;
+            direction: ltr;
+        }
+
+        .rating-star {
+            cursor: pointer;
+            font-size: 2rem;
+            color: #777;
+            line-height: 1;
+            transition: color 0.15s ease, transform 0.15s ease;
+        }
+
+        .rating-star input {
+            position: absolute;
+            opacity: 0;
+            width: 1px;
+            height: 1px;
+        }
+
+        /* Iluminar las estrellas de izquierda a derecha. */
+        .rating-star.selected,
+        .rating-star.hovered {
+            color: #ffc107;
+        }
+
+        .rating-star:focus-within {
+            outline: 2px solid #ffc107;
+            outline-offset: 3px;
+            border-radius: 3px;
+        }
+
+        .rating-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .rating-tag {
+            cursor: pointer;
+            position: relative;
+        }
+
+        .rating-tag input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .rating-tag span {
+            display: inline-block;
+            padding: 7px 11px;
+            border: 1px solid #555;
+            border-radius: 20px;
+            color: #ddd;
+            font-size: 0.85rem;
+            transition: all 0.15s ease;
+        }
+
+        .rating-tag input:checked + span {
+            border-color: #ffc107;
+            background: rgba(255, 193, 7, 0.15);
+            color: #ffc107;
+        }
+
+        .rating-tag:focus-within span {
+            outline: 2px solid #ffc107;
+            outline-offset: 2px;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // Iluminar desde la primera estrella hasta la puntuación elegida.
+            function actualizarEstrellas(form, valorHover = null) {
+                const seleccionada = form.querySelector(
+                    'input[name="puntuacion"]:checked'
+                );
+
+                const valor = valorHover !== null
+                    ? valorHover
+                    : (seleccionada ? Number(seleccionada.value) : 0);
+
+                form.querySelectorAll('.rating-star').forEach(function (estrella) {
+                    const input = estrella.querySelector('input');
+
+                    estrella.classList.toggle(
+                        'selected',
+                        Number(input.value) <= valor
+                    );
+
+                    estrella.classList.toggle(
+                        'hovered',
+                        valorHover !== null && Number(input.value) <= valorHover
+                    );
+                });
+            }
+
+            document.querySelectorAll('.rating-form').forEach(function (form) {
+                form.querySelectorAll('input[name="puntuacion"]').forEach(function (input) {
+                    input.addEventListener('change', function () {
+                        actualizarEstrellas(form);
+                    });
+
+                    const estrella = input.closest('.rating-star');
+
+                    estrella.addEventListener('mouseenter', function () {
+                        actualizarEstrellas(form, Number(input.value));
+                    });
+
+                    estrella.addEventListener('mouseleave', function () {
+                        actualizarEstrellas(form);
+                    });
+                });
+            });
+
+            // Abrir un único panel y cerrar los demás.
+            document.querySelectorAll('.rating-toggle').forEach(function (button) {
+                button.addEventListener('click', function () {
+                    const panel = document.getElementById(
+                        button.getAttribute('data-panel-id')
+                    );
+
+                    if (!panel) return;
+
+                    const estabaCerrado = panel.classList.contains('d-none');
+
+                    document.querySelectorAll('.rating-panel-row').forEach(function (row) {
+                        row.classList.add('d-none');
+                    });
+
+                    if (estabaCerrado) {
+                        panel.classList.remove('d-none');
+                    }
+                });
+            });
+
+            // Cerrar el panel.
+            document.querySelectorAll('.rating-cancel').forEach(function (button) {
+                button.addEventListener('click', function () {
+                    button.closest('.rating-panel-row').classList.add('d-none');
+                });
+            });
+
+            // Enviar la calificación sin recargar la página.
+            document.querySelectorAll('.rating-form').forEach(function (form) {
+                form.addEventListener('submit', async function (event) {
+                    event.preventDefault();
+
+                    const submitButton = form.querySelector('button[type="submit"]');
+                    const message = form.querySelector('.rating-message');
+                    const panelRow = form.closest('.rating-panel-row');
+                    const productRow = panelRow.previousElementSibling;
+                    const statusText = productRow.querySelector('[data-rating-status]');
+                    const ratingButton = productRow.querySelector('.rating-toggle');
+
+                    message.textContent = '';
+                    message.classList.remove('text-danger', 'text-success');
+
+                    if (!form.querySelector('input[name="puntuacion"]:checked')) {
+                        message.textContent = 'Selecciona una puntuación antes de continuar.';
+                        message.classList.add('text-danger');
+                        return;
+                    }
+
+                    submitButton.disabled = true;
+                    submitButton.textContent = 'Guardando...';
+
+                    try {
+                        const response = await fetch(form.getAttribute('data-url'), {
+                            method: 'POST',
+                            body: new FormData(form),
+                            headers: { 'Accept': 'application/json' },
+                            credentials: 'same-origin'
+                        });
+
+                        const result = await response.json();
+
+                        if (!response.ok || !result.success) {
+                            throw new Error(
+                                result.mensaje || 'No se pudo guardar la calificación.'
+                            );
+                        }
+
+                        // Cerrar el panel después de guardar correctamente.
+                        panelRow.classList.add('d-none');
+
+                        // ===== INICIO DE LA MODIFICACIÓN HECHA POR MARCO =====
+                        // Eliminar el botón y mostrar un único agradecimiento.
+                        if (ratingButton) {
+                            const agradecimiento = document.createElement('small');
+
+                            agradecimiento.className =
+                                'd-block text-success fw-semibold';
+
+                            agradecimiento.setAttribute('data-rating-thanks', '');
+                            agradecimiento.textContent =
+                                '¡Gracias por tu calificación!';
+
+                            ratingButton.replaceWith(agradecimiento);
+                        }
+
+                        // Ocultar el espacio de estado anterior para no duplicar mensajes.
+                        if (statusText) {
+                            statusText.remove();
+                        }
+                        // ===== FIN DE LA MODIFICACIÓN HECHA POR MARCO =====
+
+                    } catch (error) {
+                        message.textContent = error.message
+                            || 'Ocurrió un error al enviar tu calificación.';
+                        message.classList.add('text-danger');
+
+                    } finally {
+                        submitButton.disabled = false;
+                        submitButton.textContent = 'Enviar calificación';
+                    }
+                });
+            });
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- ===== FIN DE LA MODIFICACIÓN HECHA POR MARCO ===== -->
 
 </body>
 </html>

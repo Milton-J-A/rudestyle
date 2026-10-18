@@ -63,20 +63,76 @@
               <i class="bi bi-person"></i> Ingresar
             </a>
 
-            <!-- Si YA inició sesión -->
-            <div th:if="${session.usuarioLogueado != null}" class="d-flex align-items-center gap-2 border border-secondary border-opacity-50 px-3 py-1 rounded bg-black">
-              <a th:href="@{/mis-pedidos}" class="text-decoration-none d-flex align-items-center gap-2" title="Ver mis pedidos">
+            <!-- Si YA inició sesión: Menú Desplegable de Usuario -->
+            <div th:if="${session.usuarioLogueado != null}" class="dropdown">
+              <button class="btn btn-outline-warning dropdown-toggle d-flex align-items-center gap-2 py-1 px-3 rounded text-white border-secondary fw-semibold bg-black" 
+                      type="button" 
+                      id="dropdownUsuarioMenu" 
+                      data-bs-toggle="dropdown" 
+                      aria-expanded="false">
                 <i class="bi bi-person-circle text-warning fs-5"></i>
-                <span class="text-light small fw-bold" th:text="${session.usuarioLogueado.nombre}">Usuario</span>
-              </a>
-              <a th:href="@{/logout}" class="text-danger ms-2" title="Cerrar sesión">
-                <i class="bi bi-box-arrow-right fs-5"></i>
-              </a>
+                <span th:text="${session.usuarioLogueado.nombre}">Usuario</span>
+              </button>
+
+              <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow-lg py-2 mt-2" 
+                  aria-labelledby="dropdownUsuarioMenu"
+                  style="min-width: 230px; background-color: #161616; border: 1px solid #333; border-radius: 8px;">
+                
+                <li class="px-3 py-2 border-bottom border-secondary border-opacity-25">
+                  <small class="text-secondary d-block" style="font-size: 0.72rem; letter-spacing: 0.5px;">MI CUENTA</small>
+                  <span class="text-warning fw-bold small text-truncate d-block" th:text="${session.usuarioLogueado.nombre}">Usuario</span>
+                </li>
+
+                <!-- 1. Mis Pedidos & Comprobantes -->
+                <li>
+                  <a class="dropdown-item d-flex align-items-center gap-2 py-2 text-light" th:href="@{/mis-pedidos}">
+                    <i class="bi bi-bag-check text-warning"></i>
+                    <span>Mis Pedidos</span>
+                  </a>
+                </li>
+
+                <!-- 2. Mis Reclamos & Garantías -->
+                <li>
+                  <a class="dropdown-item d-flex align-items-center gap-2 py-2 text-light" th:href="@{/mis-reclamos}">
+                    <i class="bi bi-shield-check text-info"></i>
+                    <span>Mis Reclamos / Garantías</span>
+                  </a>
+                </li>
+
+                <li><hr class="dropdown-divider border-secondary border-opacity-25 my-1"></li>
+
+                <!-- 3. Cerrar Sesión -->
+                <li>
+                  <a class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger fw-semibold" th:href="@{/logout}">
+                    <i class="bi bi-box-arrow-right text-danger"></i>
+                    <span>Cerrar Sesión</span>
+                  </a>
+                </li>
+              </ul>
             </div>
+
           </div>
         </div>
       </div>
     </nav>
+    <!-- Script autónomo para asegurar la apertura del dropdown de usuario -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const dropBtn = document.getElementById("dropdownUsuarioMenu");
+        if (dropBtn) {
+          const dropMenu = dropBtn.nextElementSibling;
+          dropBtn.addEventListener("click", function (e) {
+            e.stopPropagation();
+            dropMenu.classList.toggle("show");
+          });
+          document.addEventListener("click", function (e) {
+            if (!dropBtn.contains(e.target) && !dropMenu.contains(e.target)) {
+              dropMenu.classList.remove("show");
+            }
+          });
+        }
+      });
+    </script>
   </header>
 </body>
 </html>

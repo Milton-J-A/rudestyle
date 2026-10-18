@@ -1,98 +1,652 @@
+
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="es">
 <head th:replace="~{fragments/head :: head}"></head>
 <body class="bg-black text-white">
 
-  <!-- Navbar -->
-  <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <!-- Navbar -->
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-  <main class="container my-5">
-    <nav aria-label="breadcrumb" class="mb-4">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a th:href="@{/catalogo}" class="text-warning text-decoration-none">Catálogo</a></li>
-        <li class="breadcrumb-item active text-secondary" aria-current="page" th:text="${producto.nomProducto}">Prenda</li>
-      </ol>
-    </nav>
+    <main class="container my-5">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a th:href="@{/catalogo}"
+                       class="text-warning text-decoration-none">Catálogo</a>
+                </li>
+                <li class="breadcrumb-item active text-secondary"
+                    aria-current="page"
+                    th:text="${producto.nomProducto}">Prenda</li>
+            </ol>
+        </nav>
 
-    <div class="row g-5 align-items-center">
-      <!-- Imagen de la prenda -->
-      <div class="col-md-6 text-center">
-        <div class="p-3 border border-secondary rounded-4 bg-dark shadow-lg">
-          <img th:src="@{'/img/' + ${producto.imagen}}" 
-               th:alt="${producto.nomProducto}" 
-               class="img-fluid rounded-3" 
-               style="max-height: 480px; object-fit: cover;"
-               onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=600';">
-        </div>
-      </div>
+        <!-- ===== INICIO DE LA MODIFICACIÓN HECHA POR MARCO ===== -->
+        <!-- align-items-start mantiene la imagen arriba aunque la columna
+             derecha tenga más contenido o paneles desplegados. -->
+        <div class="row g-5 align-items-start">
 
-      <!-- Información y Formulario de Compra -->
-      <div class="col-md-6">
-        <span class="badge bg-warning text-dark px-3 py-2 fw-bold text-uppercase mb-2" 
-              th:text="${producto.categoria != null ? producto.categoria.nomCategoria : 'RudeStyle'}">CATEGORÍA</span>
+            <!-- COLUMNA IZQUIERDA: IMAGEN Y OPINIONES -->
+            <div class="col-md-6">
 
-        <h1 class="fw-bold mt-2" th:text="${producto.nomProducto}">Nombre de la Prenda</h1>
-        
-        <div class="d-flex align-items-baseline gap-3 my-3">
-          <span class="fs-2 fw-bold text-warning" th:text="'S/. ' + ${producto.precio}">S/. 0.00</span>
-          <span th:if="${producto.precioOriginal != null}" class="fs-5 text-decoration-line-through text-secondary" 
-                th:text="'S/. ' + ${producto.precioOriginal}"></span>
-          <span th:if="${producto.descuentoPorcentaje != null and producto.descuentoPorcentaje > 0}" 
-                class="badge bg-danger" th:text="'-' + ${producto.descuentoPorcentaje} + '%'"></span>
-        </div>
+                <!-- Imagen del producto -->
+                <div class="text-center">
+                    <div class="p-3 border border-secondary rounded-4 bg-dark shadow-lg">
+                        <img th:src="@{'/img/' + ${producto.imagen}}"
+                             th:alt="${producto.nomProducto}"
+                             class="img-fluid rounded-3 imagen-producto-detalle"
+                             style="max-height: 480px; object-fit: contain;"
+                             onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=600';">
+                    </div>
+                </div>
 
-        <p class="text-secondary lead fs-6" th:text="${producto.descripcion != null ? producto.descripcion : 'Prenda con acabado de alta calidad y diseño urbano moderno.'}">
-          Descripción de la prenda.
-        </p>
+                <!-- Cuadro de opiniones debajo de la imagen -->
+                <section class="panel-opiniones mt-4 p-3 p-md-4 rounded-4 border border-secondary bg-dark"
+                         aria-label="Opiniones de los clientes">
 
-        <hr class="border-secondary my-4">
+                    <h2 class="titulo-opiniones mb-3">
+                        <i class="bi bi-chat-square-text text-warning me-2"></i>
+                        Opiniones de los clientes
+                        <span class="cantidad-opiniones"
+                              th:text="'(' + ${totalCalificaciones != null ? totalCalificaciones : 0} + ')'">(0)</span>
+                    </h2>
 
-        <!-- Formulario POST hacia el carrito -->
-        <form th:action="@{/carrito/agregar}" method="POST">
-          <input type="hidden" name="idProducto" th:value="${producto.idProducto}">
+                    <!-- Promedio y estrellas -->
+                    <div class="resumen-calificaciones"
+                         th:if="${totalCalificaciones != null and totalCalificaciones > 0 and promedioCalificacion != null}">
 
-          <!-- Selector de Tallas -->
-          <div class="mb-4">
-            <label class="fw-bold d-block mb-2 text-uppercase" style="letter-spacing: 1px;">Seleccionar Talla:</label>
-            <div class="btn-group" role="group">
-              <th:block th:each="talla, iter : ${tallas}">
-                <input type="radio" class="btn-check" name="talla" th:id="'talla_' + ${talla}" th:value="${talla}" th:checked="${iter.index == 0}" required>
-                <label class="btn btn-outline-warning px-4 py-2" th:for="'talla_' + ${talla}" th:text="${talla}">M</label>
-              </th:block>
+                        <div class="d-flex align-items-center flex-wrap gap-3">
+                            <span class="promedio-calificacion"
+                                  th:text="${#numbers.formatDecimal(promedioCalificacion, 1, 2)}">0.00</span>
+
+                            <div>
+                                <!-- Las estrellas se rellenan proporcionalmente.
+                                     Ejemplo: promedio 4.42 = 88.4% de relleno. -->
+                                <div class="estrellas-promedio"
+                                     th:style="'--porcentaje-estrellas:' + (${promedioCalificacion} * 20) + '%' "
+                                     role="img"
+                                     th:attr="aria-label=${'Promedio de ' + #numbers.formatDecimal(promedioCalificacion, 1, 2) + ' de 5 estrellas'}">
+                                    <span class="estrellas-vacias">★★★★★</span>
+                                    <span class="estrellas-llenas">★★★★★</span>
+                                </div>
+
+                                <p class="texto-promedio mb-0">
+                                    Promedio de calificaciones
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estado sin calificaciones -->
+                    <div th:if="${totalCalificaciones == null or totalCalificaciones == 0 or promedioCalificacion == null}"
+                         class="sin-calificaciones">
+                        <div class="estrellas-sin-calificaciones">☆☆☆☆☆</div>
+                        <p class="mb-0">
+                            Este producto todavía no tiene calificaciones.
+                        </p>
+                    </div>
+
+                    <hr class="border-secondary my-3">
+
+                    <!-- Etiquetas dinámicas con cantidad de votos.
+                         El controlador deberá enviar:
+                         etiquetasCalificacion = lista de objetos con
+                         nombreEtiqueta y cantidad. -->
+                    <div>
+                        <h3 class="titulo-etiquetas mb-3">
+                            Lo que destacan los clientes
+                        </h3>
+
+                        <div class="d-flex flex-wrap gap-2"
+                             th:if="${etiquetasCalificacion != null and !#lists.isEmpty(etiquetasCalificacion)}">
+
+                            <span class="etiqueta-opinion"
+                                  th:each="etiqueta : ${etiquetasCalificacion}">
+                                <i class="bi bi-check-circle me-1 text-warning"></i>
+                                <span th:text="${etiqueta.nombreEtiqueta}">Buen producto</span>
+                                <span class="contador-etiqueta"
+                                      th:text="'(' + ${etiqueta.cantidad} + ')'">(0)</span>
+                            </span>
+
+                        </div>
+
+                        <p class="text-secondary small mb-0"
+                           th:if="${etiquetasCalificacion == null or #lists.isEmpty(etiquetasCalificacion)}">
+                            Aún no hay etiquetas con votos para este producto.
+                        </p>
+                    </div>
+
+                </section>
             </div>
-          </div>
 
-          <!-- Selector de Cantidad y Stock -->
-          <div class="mb-4" th:if="${producto.stock > 0}">
-            <label class="fw-bold d-block mb-2 text-uppercase" style="letter-spacing: 1px;">Cantidad:</label>
-            <div class="d-flex align-items-center gap-3">
-              <input type="number" name="cantidad" value="1" min="1" th:max="${producto.stock}" 
-                     class="form-control text-center bg-dark text-white border-secondary" style="width: 90px;">
-              <small class="text-secondary" th:text="'(' + ${producto.stock} + ' unidades disponibles)'"></small>
+            <!-- COLUMNA DERECHA: INFORMACIÓN Y COMPRA -->
+            <div class="col-md-6">
+
+                <span class="badge bg-warning text-dark px-3 py-2 fw-bold text-uppercase mb-2"
+                      th:text="${producto.categoria != null ? producto.categoria.nomCategoria : 'RudeStyle'}">
+                    CATEGORÍA
+                </span>
+
+                <h1 class="fw-bold mt-2"
+                    th:text="${producto.nomProducto}">Nombre de la Prenda</h1>
+
+                <!-- Precio -->
+                <div class="d-flex align-items-baseline gap-3 my-3">
+                    <span class="fs-2 fw-bold text-warning"
+                          th:text="'S/. ' + ${producto.precio}">S/. 0.00</span>
+
+                    <span th:if="${producto.precioOriginal != null}"
+                          class="fs-5 text-decoration-line-through text-secondary"
+                          th:text="'S/. ' + ${producto.precioOriginal}"></span>
+
+                    <span th:if="${producto.descuentoPorcentaje != null and producto.descuentoPorcentaje > 0}"
+                          class="badge bg-danger"
+                          th:text="'-' + ${producto.descuentoPorcentaje} + '%'"></span>
+                </div>
+
+                <!-- Descripción -->
+                <p class="text-secondary lead fs-6"
+                   th:text="${producto.descripcion != null ? producto.descripcion : 'Prenda con acabado de alta calidad y diseño urbano moderno.'}">
+                    Descripción de la prenda.
+                </p>
+
+                <hr class="border-secondary my-4">
+
+                <!-- ===== INICIO DE LA MODIFICACIÓN HECHA POR MARCO ===== -->
+                <!-- Agregar a la bolsa sin abandonar la página -->
+                <form th:action="@{/carrito/agregar-ajax}"
+                      method="POST"
+                      id="formAgregarBolsa">
+
+                    <input type="hidden"
+                           name="idProducto"
+                           th:value="${producto.idProducto}">
+
+                    <!-- Selector de tallas -->
+                    <div class="mb-4">
+                        <label class="fw-bold d-block mb-2 text-uppercase"
+                               style="letter-spacing: 1px;">
+                            Seleccionar Talla:
+                        </label>
+
+                        <div class="btn-group" role="group">
+                            <th:block th:each="talla, iter : ${tallas}">
+                                <input type="radio"
+                                       class="btn-check"
+                                       name="talla"
+                                       th:id="'talla_' + ${talla}"
+                                       th:value="${talla}"
+                                       th:checked="${iter.index == 0}"
+                                       required>
+
+                                <label class="btn btn-outline-warning px-4 py-2"
+                                       th:for="'talla_' + ${talla}"
+                                       th:text="${talla}">M</label>
+                            </th:block>
+                        </div>
+                    </div>
+
+                    <!-- Cantidad y stock -->
+                    <div class="mb-4"
+                         th:if="${producto.stock != null and producto.stock > 0}">
+                        <label class="fw-bold d-block mb-2 text-uppercase"
+                               style="letter-spacing: 1px;">
+                            Cantidad:
+                        </label>
+
+                        <div class="d-flex align-items-center gap-3">
+                            <input type="number"
+                                   name="cantidad"
+                                   value="1"
+                                   min="1"
+                                   th:max="${producto.stock}"
+                                   required
+                                   class="form-control text-center bg-dark text-white border-secondary"
+                                   style="width: 90px;">
+
+                            <small class="text-secondary"
+                                   th:text="'(' + ${producto.stock} + ' unidades disponibles)'">
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="mb-4"
+                         th:unless="${producto.stock != null and producto.stock > 0}">
+                        <span class="badge bg-danger px-3 py-2 fw-bold text-uppercase">
+                            Agotado
+                        </span>
+                    </div>
+
+                    <!-- Botones de compra -->
+                    <div class="d-grid gap-2">
+                        <button type="submit"
+                                id="btnAgregarBolsa"
+                                class="btn btn-warning py-3 fw-bold fs-5 shadow"
+                                th:disabled="${producto.stock == null or producto.stock <= 0}">
+                            <i class="bi bi-cart-plus me-2"></i>
+                            Añadir a la Bolsa
+                        </button>
+
+                        <a th:href="@{/catalogo}"
+                           class="btn btn-outline-secondary py-2">
+                            Volver al Catálogo
+                        </a>
+                    </div>
+
+                    <div id="mensajeBolsa"
+                         class="alert mt-3 d-none"
+                         role="alert"
+                         aria-live="polite"></div>
+                </form>
+                <!-- ===== FIN DE LA MODIFICACIÓN HECHA POR MARCO ===== -->
+
+                <!-- Guía de tallas desplegable -->
+                <div class="mt-3">
+                    <button type="button"
+                            id="btnGuiaTallas"
+                            class="btn btn-outline-warning w-100 py-3 fw-bold d-flex align-items-center justify-content-between guia-desplegable"
+                            aria-expanded="false"
+                            aria-controls="panelGuiaTallas">
+                        <span>
+                            <i class="bi bi-rulers me-2"></i>
+                            Ver guía de tallas
+                        </span>
+                        <i id="iconoGuiaTallas" class="bi bi-chevron-down"></i>
+                    </button>
+
+                    <div id="panelGuiaTallas"
+                         class="d-none mt-2 p-3 rounded-3 border border-secondary bg-dark">
+
+                        <h6 class="text-warning fw-bold mb-2">Guía de medidas</h6>
+                        <p class="text-secondary small mb-3">
+                            Medidas en centímetros (cm).
+                        </p>
+
+                        <div class="table-responsive">
+                            <table class="table table-dark table-bordered table-hover align-middle text-center small mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="text-warning">Talla</th>
+                                        <th class="text-warning">Hombro</th>
+                                        <th class="text-warning">Pecho</th>
+                                        <th class="text-warning">Largo</th>
+                                        <th class="text-warning">Manga</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <th scope="row">S</th>
+                                        <td>59.5</td>
+                                        <td>114</td>
+                                        <td>71</td>
+                                        <td>56.8</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">M</th>
+                                        <td>61</td>
+                                        <td>118</td>
+                                        <td>73</td>
+                                        <td>58</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">L</th>
+                                        <td>62.8</td>
+                                        <td>123</td>
+                                        <td>75</td>
+                                        <td>59.2</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">XL</th>
+                                        <td>64.6</td>
+                                        <td>128</td>
+                                        <td>77</td>
+                                        <td>60.4</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <p class="text-secondary small mt-2 mb-0">
+                            Compara las medidas con una prenda tuya para elegir tu talla.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Cuidados específicos de cada producto -->
+                <div class="mt-3">
+                    <button type="button"
+                            id="btnCuidados"
+                            class="btn btn-outline-warning w-100 py-3 fw-bold d-flex align-items-center justify-content-between guia-desplegable"
+                            aria-expanded="false"
+                            aria-controls="panelCuidados">
+                        <span>
+                            <i class="bi bi-stars me-2"></i>
+                            Cuidados de la prenda
+                        </span>
+                        <i id="iconoCuidados" class="bi bi-chevron-down"></i>
+                    </button>
+
+                    <div id="panelCuidados"
+                         class="d-none mt-2 p-3 rounded-3 border border-secondary bg-dark">
+
+                        <p class="text-secondary mb-3 texto-intro-cuidados">
+                            Recomendaciones para cuidar y conservar esta prenda.
+                        </p>
+
+                        <div class="lista-cuidados">
+
+                            <div class="item-cuidado"
+                                 th:if="${especificacion != null and especificacion.lavado != null and !#strings.isEmpty(especificacion.lavado)}">
+                                <i class="bi bi-droplet-half text-warning"></i>
+                                <div>
+                                    <strong>Lavado</strong>
+                                    <p th:text="${especificacion.lavado}"></p>
+                                </div>
+                            </div>
+
+                            <div class="item-cuidado"
+                                 th:if="${especificacion != null and especificacion.secado != null and !#strings.isEmpty(especificacion.secado)}">
+                                <i class="bi bi-wind text-warning"></i>
+                                <div>
+                                    <strong>Secado</strong>
+                                    <p th:text="${especificacion.secado}"></p>
+                                </div>
+                            </div>
+
+                            <div class="item-cuidado"
+                                 th:if="${especificacion != null and especificacion.planchado != null and !#strings.isEmpty(especificacion.planchado)}">
+                                <i class="bi bi-thermometer-half text-warning"></i>
+                                <div>
+                                    <strong>Planchado</strong>
+                                    <p th:text="${especificacion.planchado}"></p>
+                                </div>
+                            </div>
+
+                            <div class="item-cuidado"
+                                 th:if="${especificacion != null and especificacion.conservacion != null and !#strings.isEmpty(especificacion.conservacion)}">
+                                <i class="bi bi-shield-check text-warning"></i>
+                                <div>
+                                    <strong>Conservación</strong>
+                                    <p th:text="${especificacion.conservacion}"></p>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <p class="text-secondary mb-0 mensaje-sin-cuidados"
+                           th:if="${especificacion == null or ((especificacion.lavado == null or #strings.isEmpty(especificacion.lavado)) and (especificacion.secado == null or #strings.isEmpty(especificacion.secado)) and (especificacion.planchado == null or #strings.isEmpty(especificacion.planchado)) and (especificacion.conservacion == null or #strings.isEmpty(especificacion.conservacion)))}">
+                            Todavía no se han registrado recomendaciones para esta prenda.
+                        </p>
+                    </div>
+                </div>
+
             </div>
-          </div>
+        </div>
+        <!-- ===== FIN DE LA MODIFICACIÓN HECHA POR MARCO ===== -->
+    </main>
 
-          <div class="mb-4" th:unless="${producto.stock > 0}">
-            <span class="badge bg-danger px-3 py-2 fw-bold text-uppercase">Agotado</span>
-          </div>
+    <!-- Footer -->
+    <div th:replace="~{fragments/footer :: footer}"></div>
 
-          <!-- Botón de compra -->
-          <div class="d-grid gap-2">
-            <button type="submit" class="btn btn-warning py-3 fw-bold fs-5 shadow" th:disabled="${producto.stock <= 0}">
-              <i class="bi bi-cart-plus me-2"></i> Añadir a la Bolsa
-            </button>
-            <a th:href="@{/catalogo}" class="btn btn-outline-secondary py-2">
-              Volver al Catálogo
-            </a>
-          </div>
-        </form>
+    <style>
+        /* ===== INICIO DE LA MODIFICACIÓN HECHA POR MARCO ===== */
 
-      </div>
-    </div>
-  </main>
+        /* Mantener la foto alineada arriba y ocupar bien la columna. */
+        .imagen-producto-detalle {
+            width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
 
-  <!-- Footer -->
-  <div th:replace="~{fragments/footer :: footer}"></div>
+        /* Cuadro de opiniones */
+        .panel-opiniones {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+        }
+
+        .titulo-opiniones {
+            font-size: 1.1rem;
+            font-weight: 700;
+            line-height: 1.4;
+        }
+
+        .cantidad-opiniones {
+            color: #adb5bd;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .promedio-calificacion {
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1;
+            color: #ffc107;
+        }
+
+        .estrellas-promedio {
+            position: relative;
+            display: inline-block;
+            font-size: 1.65rem;
+            line-height: 1;
+            letter-spacing: 2px;
+            white-space: nowrap;
+        }
+
+        .estrellas-vacias {
+            color: #62676d;
+        }
+
+        .estrellas-llenas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: var(--porcentaje-estrellas, 0%);
+            overflow: hidden;
+            color: #ffc107;
+            white-space: nowrap;
+        }
+
+        .texto-promedio {
+            color: #adb5bd;
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+
+        .sin-calificaciones {
+            color: #adb5bd;
+            font-size: 0.9rem;
+        }
+
+        .estrellas-sin-calificaciones {
+            color: #62676d;
+            font-size: 1.65rem;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+
+        .titulo-etiquetas {
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        .etiqueta-opinion {
+            display: inline-flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 3px;
+            background-color: #202327;
+            border: 1px solid #454a50;
+            border-radius: 50rem;
+            padding: 7px 11px;
+            font-size: 0.85rem;
+            line-height: 1.3;
+            overflow-wrap: anywhere;
+        }
+
+        .contador-etiqueta {
+            color: #adb5bd;
+            font-size: 0.78rem;
+            margin-left: 2px;
+        }
+
+        /* ===== FIN DE LA MODIFICACIÓN HECHA POR MARCO ===== */
+
+        .guia-desplegable {
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .guia-desplegable:hover {
+            background-color: #ffc107;
+            color: #111;
+            border-color: #ffc107;
+        }
+
+        #panelGuiaTallas,
+        #panelCuidados {
+            animation: aparecerPanel 0.2s ease;
+        }
+
+        @keyframes aparecerPanel {
+            from {
+                opacity: 0;
+                transform: translateY(-4px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .lista-cuidados {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .item-cuidado {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+        }
+
+        .item-cuidado > i {
+            font-size: 1.3rem;
+            margin-top: 3px;
+            flex-shrink: 0;
+        }
+
+        /* ===== INICIO DE LA MODIFICACIÓN HECHA POR MARCO ===== */
+        .item-cuidado strong {
+            display: block;
+            font-size: 1rem;
+            margin-bottom: 4px;
+            color: #fff;
+        }
+
+        .item-cuidado p {
+            color: #adb5bd;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .texto-intro-cuidados,
+        .mensaje-sin-cuidados {
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        /* ===== FIN DE LA MODIFICACIÓN HECHA POR MARCO ===== */
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // Agregar producto a la bolsa sin recargar la página.
+            const formulario = document.getElementById('formAgregarBolsa');
+            const mensaje = document.getElementById('mensajeBolsa');
+            const boton = document.getElementById('btnAgregarBolsa');
+
+            if (formulario && mensaje && boton) {
+                formulario.addEventListener('submit', async function (evento) {
+                    evento.preventDefault();
+
+                    if (!formulario.checkValidity()) {
+                        formulario.reportValidity();
+                        return;
+                    }
+
+                    const textoOriginal = boton.innerHTML;
+
+                    mensaje.textContent = '';
+                    mensaje.className = 'alert mt-3 d-none';
+
+                    boton.disabled = true;
+                    boton.innerHTML =
+                        '<span class="spinner-border spinner-border-sm me-2"></span>Agregando...';
+
+                    try {
+                        const respuesta = await fetch(formulario.action, {
+                            method: 'POST',
+                            body: new FormData(formulario),
+                            headers: {
+                                'Accept': 'application/json'
+                            }
+                        });
+
+                        const datos = await respuesta.json();
+
+                        mensaje.textContent = datos.mensaje
+                            || 'No se pudo agregar el producto.';
+
+                        mensaje.className = respuesta.ok
+                            ? 'alert alert-success mt-3'
+                            : 'alert alert-danger mt-3';
+
+                    } catch (error) {
+                        mensaje.textContent =
+                            'No se pudo conectar con el servidor. Intenta nuevamente.';
+                        mensaje.className = 'alert alert-danger mt-3';
+                    } finally {
+                        boton.disabled = false;
+                        boton.innerHTML = textoOriginal;
+                    }
+                });
+            }
+
+            // Abrir y cerrar los paneles desplegables.
+            function configurarPanel(idBoton, idPanel, idIcono) {
+                const botonPanel = document.getElementById(idBoton);
+                const panel = document.getElementById(idPanel);
+                const icono = document.getElementById(idIcono);
+
+                if (!botonPanel || !panel || !icono) {
+                    return;
+                }
+
+                botonPanel.addEventListener('click', function () {
+                    const seVaAAbrir = panel.classList.contains('d-none');
+
+                    panel.classList.toggle('d-none');
+                    botonPanel.setAttribute('aria-expanded', String(seVaAAbrir));
+
+                    icono.classList.toggle('bi-chevron-down', !seVaAAbrir);
+                    icono.classList.toggle('bi-chevron-up', seVaAAbrir);
+                });
+            }
+
+            configurarPanel(
+                'btnGuiaTallas',
+                'panelGuiaTallas',
+                'iconoGuiaTallas'
+            );
+
+            configurarPanel(
+                'btnCuidados',
+                'panelCuidados',
+                'iconoCuidados'
+            );
+        });
+    </script>
 
 </body>
 </html>
